@@ -1,0 +1,126 @@
+options {
+  JAVA_UNICODE_ESCAPE = true;
+}
+
+PARSER_BEGIN(Parser)
+    import ast.*;
+    import java.util.*;
+    public class Parser {
+        private static Long counter;
+        private static Map<String, Long> map;
+
+        public static void main(String[] args){
+          counter = 0L;
+          map = new HashMap<>();
+        }
+    }
+PARSER_END(Parser)
+
+<DEFAULT> TOKEN : {
+    < #DIGIT : ["0"-"9"] >
+  | < #LETTER : ["A"-"Z","a"-"z"] >
+  | < LPAREN : "(" >
+  | < RPAREN : ")" >
+  | < COMMA : "," >
+  | < DOT : "." >
+  | < IMPLIED_BY : ":-" >
+  | < IDENTIFIER : <LETTER> (<LETTER> | <DIGIT> | "_")* >
+  | < INTEGER_LITERAL : (<DIGIT>)+ >
+}
+
+//
+SKIP : {
+    < "//"  (~["\r", "\n"])* >
+  | < (" " | "\n" | "\r" | "\r\n" | "\t" | "\f" ) >
+  | "/*" : ML_CMNT_ST
+}
+
+
+<ML_CMNT_ST> SKIP : {
+    "*/" : DEFAULT
+}
+
+<ML_CMNT_ST > MORE : {
+    < ~[] >
+}
+
+Program parse(): {
+    List<Atom> facts = new ArrayList<>();
+    List<Rule> rules = new ArrayList<>();
+} {
+    (Constraints(facts, rules)) <EOF> {return new Program(facts, rules);}
+}
+
+void Constraints(List<Atom> facts, List<Rule> rules) : {
+    Rule r;
+    Atom f;
+} {
+    r = Rule() { rules.add(r); } (Constraints(facts, rules))?
+|   f = Fact() { facts.add(f); } (Constraints(facts, rules))?
+}
+
+Atom Fact() : {
+    Atom a;
+} {
+    a = Atom() <DOT> {return a;}
+}
+
+Rule Rule() :
+{
+    Atom head;
+    List<Atom> body;
+} {
+    head = Atom() <IMPLIED_BY> body = Body() <DOT> { return new Rule(head, body); }
+}
+
+List<Atom> Body(): {
+    List<Atom> bodyList = new ArrayList<>();
+    Atom p;
+} {
+    // Possibly empty body which can have a trailing comma.
+    (p=Atom() <COMMA> { bodyList.add(p); })* p=Atom() (<COMMA>) ? { bodyList.add(p); return bodyList; }
+}
+
+Atom Atom() : {
+    Term id;
+    List<Term> argList = new ArrayList<>();
+} {
+    id=Identifier() <LPAREN> argList=ArgList(argList) <RPAREN> { return new Atom(id, argList); }
+}
+
+List<Term> ArgList(List<Term> argList) : {
+    //List<Identifier> argList = new ArrayList<>();
+    Term arg;
+} {
+     //( f=Formal() { fl.addElement(f); } ( <COMMA> f=Formal() { fl.addElement(f); } )*  )?
+    arg=Term() { argList.add(arg); } ( <COMMA> arg=Term() { argList.add(arg); } )* (<COMMA>) ?
+    { return argList; }
+}
+
+Term IntValue() : {
+    Token t;
+} {
+    t=<INTEGER_LITERAL> { return new Term(Long.valueOf(t.image), false); }
+}
+
+Term Term() : {
+    Term t;
+} {
+    t = IntValue() { return t; }
+|   t = Identifier() { return t; }
+}
+
+Term Identifier() : {
+    Token t;
+} {
+    t=<IDENTIFIER> {
+            Long value;
+            if (map.containsKey(t.image)) {
+                value = map.get(t.image);
+            } else {
+                value = counter++;
+                map.put(t.image, value);
+            }
+            return new Term(value, true);
+        }
+}
