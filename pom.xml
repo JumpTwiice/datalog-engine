@@ -25,7 +25,8 @@
                             <goal>javacc</goal>
                         </goals>
                         <configuration>
-                            <lookAhead>2</lookAhead>
+                            <lookAhead>1</lookAhead>
+                            <forceLaCheck>true</forceLaCheck>
                             <isStatic>false</isStatic>
                         </configuration>
                     </execution>

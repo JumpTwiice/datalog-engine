@@ -1,8 +1,8 @@
 package ast;
 
 public class Term {
-    Long value;
-    boolean isVar;
+    public Long value;
+    public boolean isVar;
 
     public Term(Long value, boolean isVar) {
         this.value = value;

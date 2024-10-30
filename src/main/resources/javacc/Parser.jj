@@ -23,8 +23,10 @@ PARSER_END(Parser)
   | < RPAREN : ")" >
   | < COMMA : "," >
   | < DOT : "." >
+  | < QUESTION : "?" >
   | < IMPLIED_BY : ":-" >
-  | < IDENTIFIER : <LETTER> (<LETTER> | <DIGIT> | "_")* >
+  | < VAR_IDENTIFIER : ["a"-"z"] (<LETTER> | <DIGIT> | "_")* >
+  | < PRED_IDENTIFIER : ["A"-"Z"] (<LETTER> | <DIGIT> | "_")* >
   | < INTEGER_LITERAL : (<DIGIT>)+ >
 }
 
@@ -47,53 +49,37 @@ SKIP : {
 Program parse(): {
     List<Atom> facts = new ArrayList<>();
     List<Rule> rules = new ArrayList<>();
+    Atom q = null;
 } {
-    (Constraints(facts, rules)) <EOF> {return new Program(facts, rules);}
+    Constraints(facts, rules) (<QUESTION> q=Atom() <QUESTION>)? <EOF> {return new Program(facts, rules, q);}
 }
 
 void Constraints(List<Atom> facts, List<Rule> rules) : {
-    Rule r;
-    Atom f;
+    Atom h;
+    List<Atom> b = null;
 } {
-    r = Rule() { rules.add(r); } (Constraints(facts, rules))?
-|   f = Fact() { facts.add(f); } (Constraints(facts, rules))?
-}
-
-Atom Fact() : {
-    Atom a;
-} {
-    a = Atom() <DOT> {return a;}
-}
-
-Rule Rule() :
-{
-    Atom head;
-    List<Atom> body;
-} {
-    head = Atom() <IMPLIED_BY> body = Body() <DOT> { return new Rule(head, body); }
+    h = Atom() (b=Body())? {if(b == null) {facts.add(h);} else {rules.add(new Rule(h, b));}} <DOT> (Constraints(facts, rules))?
 }
 
 List<Atom> Body(): {
     List<Atom> bodyList = new ArrayList<>();
     Atom p;
 } {
-    // Possibly empty body which can have a trailing comma.
-    (p=Atom() <COMMA> { bodyList.add(p); })* p=Atom() (<COMMA>) ? { bodyList.add(p); return bodyList; }
+    // Possibly empty body which can have a trailing comma. TODO.
+    <IMPLIED_BY> p=Atom() {bodyList.add(p);}  (<COMMA> p=Atom() { bodyList.add(p); })*  { return bodyList; }
 }
 
 Atom Atom() : {
     Term id;
     List<Term> argList = new ArrayList<>();
 } {
-    id=Identifier() <LPAREN> argList=ArgList(argList) <RPAREN> { return new Atom(id, argList); }
+    id=PredIdentifier() <LPAREN> argList=ArgList(argList) <RPAREN> { return new Atom(id, argList); }
 }
 
 List<Term> ArgList(List<Term> argList) : {
-    //List<Identifier> argList = new ArrayList<>();
     Term arg;
 } {
-     //( f=Formal() { fl.addElement(f); } ( <COMMA> f=Formal() { fl.addElement(f); } )*  )?
-    arg=Term() { argList.add(arg); } ( <COMMA> arg=Term() { argList.add(arg); } )* (<COMMA>) ?
+    arg=Term() { argList.add(arg); } ( <COMMA> arg=Term() { argList.add(arg); } )*
     { return argList; }
 }
 
@@ -107,13 +93,28 @@ Term Term() : {
     Term t;
 } {
     t = IntValue() { return t; }
-|   t = Identifier() { return t; }
+|   t = VarIdentifier() { return t; }
 }
 
-Term Identifier() : {
+Term PredIdentifier() : {
     Token t;
 } {
-    t=<IDENTIFIER> {
+    t=<PRED_IDENTIFIER> {
+            Long value;
+            if (map.containsKey(t.image)) {
+                value = map.get(t.image);
+            } else {
+                value = counter++;
+                map.put(t.image, value);
+            }
+            return new Term(value, true);
+        }
+}
+
+Term VarIdentifier() : {
+    Token t;
+} {
+    t=<VAR_IDENTIFIER> {
             Long value;
             if (map.containsKey(t.image)) {
                 value = map.get(t.image);
