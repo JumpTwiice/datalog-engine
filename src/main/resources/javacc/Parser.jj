@@ -10,7 +10,7 @@ PARSER_BEGIN(Parser)
         private static Map<String, Long> map;
 
         public static void main(String[] args){
-          counter = 0L;
+          counter = 0L; // Negative to keep its domain separate from integer constants.
           map = new HashMap<>();
         }
     }
@@ -104,10 +104,10 @@ Term PredIdentifier() : {
             if (map.containsKey(t.image)) {
                 value = map.get(t.image);
             } else {
-                value = counter++;
+                value = counter--;
                 map.put(t.image, value);
             }
-            return new Term(value, true);
+            return value;
         }
 }
 
@@ -119,7 +119,7 @@ Term VarIdentifier() : {
             if (map.containsKey(t.image)) {
                 value = map.get(t.image);
             } else {
-                value = counter++;
+                value = counter--;
                 map.put(t.image, value);
             }
             return new Term(value, true);

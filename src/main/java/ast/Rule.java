@@ -5,6 +5,7 @@ import java.util.List;
 public class Rule {
     public Atom head;
     public List<Atom> body;
+    public EqualitySet equalitySet;
 
     public Rule(Atom head, List<Atom> body) {
         this.head = head;

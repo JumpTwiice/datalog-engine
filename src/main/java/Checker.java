@@ -9,10 +9,10 @@ import java.util.Set;
 public class Checker {
 
     private static void checkAtomArity(Atom a, Map<Long, Long> arities) {
-        if(arities.containsKey(a.pred.value)) {
-            assert(arities.get(a.pred.value) == a.ids.size());
+        if(arities.containsKey(a.pred)) {
+            assert(arities.get(a.pred) == a.ids.size());
         } else {
-            arities.put(a.pred.value, (long) a.ids.size());
+            arities.put(a.pred, (long) a.ids.size());
         }
     }
 
