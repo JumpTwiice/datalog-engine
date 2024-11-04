@@ -12,7 +12,7 @@ public class Solver {
     public static Map<Long, Set<List<Long>>> initializeSolutions(Program p) {
         Map<Long, Set<List<Long>>> solutions = new HashMap<>();
         for(var x: p.rules) {
-            solutions.put(x.head.pred, new HashSet<>());
+            solutions.putIfAbsent(x.head.pred, new HashSet<>());
         }
         for(var x: p.facts) {
             solutions.putIfAbsent(x.pred, new HashSet<>());
@@ -21,29 +21,111 @@ public class Solver {
         return solutions;
     }
 
-    public static void naiveEval(Program p) {
-        Map<Long, Set<List<Long>>> solutions = initializeSolutions(p);
-        boolean done;
-        do  {
-            done = true;
-            Map<Long, Set<List<Long>>> newSolutions = new HashMap<>();
-            for (var x: p.rules) {
-                newSolutions.put(x.head.pred, eval(x, solutions));
-            }
-            for (var x: newSolutions.keySet()) {
-                var set = newSolutions.get(x);
-                solutions.get(x);
-            }
-//            for (var x: p.rules) {
-//
-//                newSolutions.put(x.head.pred, computeSet(x, solutions));
-//            }
-        } while(!done);
+    public static Map<Long, Set<List<Long>>> initializeEmpty(Program p) {
+        Map<Long, Set<List<Long>>> solutions = new HashMap<>();
+        for(var x: p.rules) {
+            solutions.putIfAbsent(x.head.pred, new HashSet<>());
+        }
+        for(var x: p.facts) {
+            solutions.putIfAbsent(x.pred, new HashSet<>());
+        }
+        return solutions;
     }
 
-    public static Set<List<Long>> eval(Rule r, Map<Long, Set<List<Long>>> solutions) {
+    public static Map<Long, Set<List<Long>>> naiveEval(Program p) {
+        Map<Long, Set<List<Long>>> solutions = initializeSolutions(p);
+        boolean done;
+        do {
+            done = true;
+            Map<Long, Set<List<Long>>> newSolutions = new HashMap<>();
+            for(var r: p.idToRuleSet.keySet()) {
+                newSolutions.put(r, eval(p, r, solutions));
+            }
+            loop: for (var x: newSolutions.keySet()) {
+                var set = newSolutions.get(x);
+                for(var y: set) {
+                    if(!solutions.get(x).contains(y)) {
+                        done = false;
+                        break loop;
+                    }
+                }
+            }
+            // Add all new solutions to the old.
+            if(!done) {
+                for (var x: newSolutions.keySet()) {
+                    solutions.get(x).addAll(newSolutions.get(x));
+                }
+            }
+        } while(!done);
+        return solutions;
+    }
+
+    public static Map<Long, Set<List<Long>>> semiNaiveEval(Program p) {
+        Map<Long, Set<List<Long>>> solutions = initializeSolutions(p);
+        Map<Long, Set<List<Long>>> deltaSolutions = initializeEmpty(p);
+        for (var p_i: p.idToRuleSet.keySet()) {
+            deltaSolutions.put(p_i, eval(p, p_i, solutions));
+        }
+        solutions = deltaSolutions;
+
+        boolean done;
+        do {
+            done = true;
+            Map<Long, Set<List<Long>>> deltaPrimeSolutions = deltaSolutions;
+            deltaSolutions = new HashMap<>();
+            for (var p_i: p.idToRuleSet.keySet()) {
+                deltaSolutions.put(p_i, evalIncremental(p, p_i, solutions, deltaPrimeSolutions));
+                deltaSolutions.get(p_i).removeAll(solutions.get(p_i));
+            }
+            for (var x: deltaSolutions.keySet()) {
+                var set = deltaSolutions.get(x);
+                if(deltaSolutions.get(x).size() != 0) {
+                    done = false;
+                    break;
+                }
+            }
+            // Add all new solutions to the old.
+            if(!done) {
+                for (var p_i: p.idToRuleSet.keySet()) {
+                    solutions.get(p_i).addAll(deltaSolutions.get(p_i));
+                }
+            }
+        } while(!done);
+        return solutions;
+    }
+
+    public static Set<List<Long>> eval(Program p, long p_i, Map<Long, Set<List<Long>>> solutions) {
+        Set<List<Long>> sol = new HashSet<>();
+        for (var r: p.idToRuleSet.get(p_i)) {
+            sol.addAll(evalRule(p.rules.get(r), solutions));
+        }
+        return sol;
+    }
+
+    public static Set<List<Long>> evalIncremental(Program p, long p_i, Map<Long, Set<List<Long>>> solutions, Map<Long, Set<List<Long>>> deltaSolutions) {
+        Set<List<Long>> sol = new HashSet<>();
+        for (var r: p.idToRuleSet.get(p_i)) {
+            sol.addAll(evalRuleIncremental(p.rules.get(r), solutions, deltaSolutions));
+        }
+        return sol;
+    }
+
+
+
+    public static Set<List<Long>> evalRule(Rule r, Map<Long, Set<List<Long>>> solutions) {
         var satisfyingTuples = join(r, solutions);
         return project(r, satisfyingTuples);
+    }
+
+    public static Set<List<Long>> evalRuleIncremental(Rule r, Map<Long, Set<List<Long>>> solutions, Map<Long, Set<List<Long>>> newSolutions) {
+        Set<List<Long>> newNewSolutions = new HashSet<>();
+        solutions.keySet().forEach(x -> {
+            var temp = solutions.get(x);
+            solutions.put(x, newSolutions.get(x));
+            newNewSolutions.addAll(evalRule(r, solutions));
+            solutions.put(x, temp);
+        });
+        return newNewSolutions;
     }
 
     public static Set<List<Long>> project(Rule r, HashSet<ArrayList<List<Long>>> tuples) {
@@ -71,8 +153,8 @@ public class Solver {
                 }
             }
 //            Assert equality constraints
-            return r.equalitySet.eqSet.values().stream().anyMatch(eqList -> {
-                if(eqList.size() <= 1) {
+            return !r.equalitySet.eqSet.values().stream().anyMatch(eqList -> {
+                if(eqList.size() <= 2) {
                     return false;
                 }
                 var value = tuple.get(eqList.get(0)).get(eqList.get(1));
@@ -84,7 +166,6 @@ public class Solver {
                 return false;
             });
         }).collect(Collectors.toCollection(HashSet::new));
-
 
         return satisfyingTuples;
     }

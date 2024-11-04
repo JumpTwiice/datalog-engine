@@ -48,14 +48,18 @@ Program parse(): {
     List<Rule> rules = new ArrayList<>();
     Atom q = null;
 } {
-    Constraints(facts, rules) (<QUESTION> q=Atom() <QUESTION>)? <EOF> {return new Program(facts, rules, q);}
+    Constraints(facts, rules) (<QUESTION> q=Atom() <QUESTION>)? <EOF> {return new Program(facts, rules, q, idToVar);}
 }
 
 void Constraints(List<Atom> facts, List<Rule> rules) : {
     Atom h;
     List<Atom> b = null;
 } {
-    h = Atom() (b=Body())? {if(b == null) {facts.add(h);} else {rules.add(new Rule(h, b));}} <DOT> (Constraints(facts, rules))?
+    h = Atom() (b=Body())? {if(b == null) {facts.add(h); for(int i = 0; i < h.ids.size(); i++) {
+        if(h.ids.get(i).isVar) {
+            throw new ParseException("Variable used in fact");
+        }
+    }} else {rules.add(new Rule(h, b));}} <DOT> (Constraints(facts, rules))?
 }
 
 List<Atom> Body(): {
@@ -93,16 +97,17 @@ Term Term() : {
 |   t = VarIdentifier() { return t; }
 }
 
-Term PredIdentifier() : {
+Long PredIdentifier() : {
     Token t;
 } {
     t=<PRED_IDENTIFIER> {
             Long value;
-            if (map.containsKey(t.image)) {
-                value = map.get(t.image);
+            if (varToId.containsKey(t.image)) {
+                value = varToId.get(t.image);
             } else {
                 value = counter--;
-                map.put(t.image, value);
+                varToId.put(t.image, value);
+                idToVar.put(value, t.image);
             }
             return value;
         }
@@ -113,11 +118,12 @@ Term VarIdentifier() : {
 } {
     t=<VAR_IDENTIFIER> {
             Long value;
-            if (map.containsKey(t.image)) {
-                value = map.get(t.image);
+            if (varToId.containsKey(t.image)) {
+                value = varToId.get(t.image);
             } else {
                 value = counter--;
-                map.put(t.image, value);
+                varToId.put(t.image, value);
+                idToVar.put(value, t.image);
             }
             return new Term(value, true);
         }

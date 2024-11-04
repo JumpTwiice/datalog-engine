@@ -1,7 +1,7 @@
 package ast;
 
 public class Term {
-    public Long value;
+    public long value;
     public boolean isVar;
 
     public Term(Long value, boolean isVar) {
