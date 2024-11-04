@@ -1,0 +1,9 @@
+edge(1,2).
+edge(2,3).
+edge(3,4).
+edge(4,1).
+
+edge(X,Y) :- edge(Y,X).
+
+reachable(X,Y) :- edge(X,Y).
+reachable(X,Y) :- reachable(X,Z), reachable(Z, Y).

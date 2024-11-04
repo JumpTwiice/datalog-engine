@@ -1,0 +1,5 @@
+hej(9).
+hej(2).
+med(6).
+med(X) :- hej(X).
+?hej(6)?

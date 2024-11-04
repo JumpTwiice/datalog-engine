@@ -6,13 +6,10 @@ PARSER_BEGIN(Parser)
     import ast.*;
     import java.util.*;
     public class Parser {
-        private static Long counter;
-        private static Map<String, Long> map;
-
-        public static void main(String[] args){
-          counter = 0L; // Negative to keep its domain separate from integer constants.
-          map = new HashMap<>();
-        }
+        private static Long counter = 0L;
+        // TODO: Variables in different rules will map to the same number. Probably fine?
+        private static Map<String, Long> varToId = new HashMap<>();
+        private static Map<Long, String> idToVar = new HashMap<>();
     }
 PARSER_END(Parser)
 
@@ -25,8 +22,8 @@ PARSER_END(Parser)
   | < DOT : "." >
   | < QUESTION : "?" >
   | < IMPLIED_BY : ":-" >
-  | < VAR_IDENTIFIER : ["a"-"z"] (<LETTER> | <DIGIT> | "_")* >
-  | < PRED_IDENTIFIER : ["A"-"Z"] (<LETTER> | <DIGIT> | "_")* >
+  | < VAR_IDENTIFIER : ["A"-"Z"] (<LETTER> | <DIGIT> | "_")* >
+  | < PRED_IDENTIFIER : ["a"-"z"] (<LETTER> | <DIGIT> | "_")* >
   | < INTEGER_LITERAL : (<DIGIT>)+ >
 }
 
@@ -70,7 +67,7 @@ List<Atom> Body(): {
 }
 
 Atom Atom() : {
-    Term id;
+    Long id;
     List<Term> argList = new ArrayList<>();
 } {
     id=PredIdentifier() <LPAREN> argList=ArgList(argList) <RPAREN> { return new Atom(id, argList); }
