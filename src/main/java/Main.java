@@ -22,7 +22,7 @@ for(let i = 0; i < n; i+=4) {
 
 public class Main {
     public static void main(String[] args) throws Exception {
-
+        System.out.println(System.getProperty("user.dir"));
 //        String projectPath = "C:\\Users\\caspe\\OneDrive\\Skrivebord\\Uni\\9. semester\\Programming languages\\datalog-engine\\";
         String projectPath = "C:\\Users\\adamt\\Desktop\\datalog-engine\\";
 //        var is = new FileInputStream(projectPath + "src\\test\\test1.datalog");
