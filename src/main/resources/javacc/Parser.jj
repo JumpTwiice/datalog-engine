@@ -3,14 +3,14 @@ options {
 }
 
 PARSER_BEGIN(Parser)
-    import ast.*;
-    import java.util.*;
-    public class Parser {
-        private static Long counter = -1L;
-        // TODO: Variables in different rules will map to the same number. Probably fine?
-        private static Map<String, Long> varToId = new HashMap<>();
-        private static Map<Long, String> idToVar = new HashMap<>();
-    }
+    import ast.*;import solver.Checker;import solver.Transformer;
+import java.util.*;
+public class Parser {
+    private static Long counter = -1L;
+    // TODO: Variables in different rules will map to the same number. Probably fine?
+    private static Map<String, Long> varToId = new HashMap<>();
+    private static Map<Long, String> idToVar = new HashMap<>();
+}
 PARSER_END(Parser)
 
 <DEFAULT> TOKEN : {
@@ -44,22 +44,44 @@ SKIP : {
 }
 
 Program parse(): {
-    List<Atom> facts = new ArrayList<>();
-    List<Rule> rules = new ArrayList<>();
+    Map<Long, List<Atom>> facts = new HashMap<>();
+    Map<Long, List<Rule>> rules = new HashMap<>();
     Atom q = null;
 } {
-    Constraints(facts, rules) (<QUESTION> q=Atom() <QUESTION>)? <EOF> {return new Program(facts, rules, q, idToVar);}
+    Constraints(facts, rules) (<QUESTION> q=Atom() <QUESTION>)? <EOF> {
+Checker.checkProgram(facts, rules, q);
+counter = Transformer.changeFactsAndRulesToEDGFormat(facts, rules, counter);
+HashMap<Long, Set<List<Long>>> newFacts = new HashMap<>();
+for(var id: facts.keySet()) {
+    Set<List<Long>> factSet = newFacts.put(id, new HashSet<>());
+    for(var f: facts.get(id)) {
+        List<Long> fact = new ArrayList<>();
+        for(var l: f.ids) {
+            fact.add(l.value);
+        }
+        factSet.add(fact);
+    }
+}
+return new Program(newFacts, rules, q, idToVar, counter + 1);
+}
 }
 
-void Constraints(List<Atom> facts, List<Rule> rules) : {
+void Constraints(Map<Long, List<Atom>> facts, Map<Long, List<Rule>> rules) : {
     Atom h;
     List<Atom> b = null;
 } {
-    h = Atom() (b=Body())? {if(b == null) {facts.add(h); for(int i = 0; i < h.ids.size(); i++) {
+    h = Atom() (b=Body())? {if(b == null) {
+        facts.putIfAbsent(h.pred, new ArrayList<>());
+        facts.get(h.pred).add(h);
+        for(int i = 0; i < h.ids.size(); i++) {
         if(h.ids.get(i).isVar) {
             throw new ParseException("Variable used in fact");
         }
-    }} else {rules.add(new Rule(h, b));}} <DOT> (Constraints(facts, rules))?
+    }} else {
+    var rule = new Rule(h, b);
+    rules.putIfAbsent(rule.head.pred, new ArrayList<>());
+    rules.get(rule.head.pred).add(rule);
+}} <DOT> (Constraints(facts, rules))?
 }
 
 List<Atom> Body(): {

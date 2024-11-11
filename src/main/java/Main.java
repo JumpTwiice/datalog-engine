@@ -22,20 +22,21 @@ for(let i = 0; i < n; i+=4) {
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        String projectPath = "C:\\Users\\caspe\\OneDrive\\Skrivebord\\Uni\\9. semester\\Programming languages\\datalog-engine\\";
-//        String projectPath = "C:\\Users\\adamt\\Desktop\\datalog-engine\\";
+
+//        String projectPath = "C:\\Users\\caspe\\OneDrive\\Skrivebord\\Uni\\9. semester\\Programming languages\\datalog-engine\\";
+        String projectPath = "C:\\Users\\adamt\\Desktop\\datalog-engine\\";
 //        var is = new FileInputStream(projectPath + "src\\test\\test1.datalog");
-//        var is = new FileInputStream(projectPath + "src\\test\\test2.datalog");
-        var is = new FileInputStream(projectPath + "src\\test\\MagicSetsOriginal.datalog");
+        var is = new FileInputStream(projectPath + "src\\test\\test2.datalog");
+//        var is = new FileInputStream(projectPath + "src\\test\\MagicSetsOriginal.datalog");
 //        var is = new FileInputStream(projectPath + "src\\test\\MagicSetsMagic.datalog");
 //        "src/test/test1.datalog"
 
         var parser = new Parser(is);
         var p = parser.parse();
 //        Checker.checkProgram(p);
-        Transformer.setEqSet(p);
+        solver.Transformer.setEqSet(p);
 //        var solution = Solver.naiveEval(p);
-        var solution = Solver.semiNaiveEval(p);
+        var solution = solver.Solver.semiNaiveEval(p);
         for (var x: solution.keySet()) {
             System.out.println(p.idToVar.get(x));
 //            System.out.println(x);
