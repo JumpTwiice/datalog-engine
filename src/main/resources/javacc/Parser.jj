@@ -6,7 +6,7 @@ PARSER_BEGIN(Parser)
     import ast.*;
     import java.util.*;
     public class Parser {
-        private static Long counter = 0L;
+        private static Long counter = -1L;
         // TODO: Variables in different rules will map to the same number. Probably fine?
         private static Map<String, Long> varToId = new HashMap<>();
         private static Map<Long, String> idToVar = new HashMap<>();

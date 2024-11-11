@@ -66,13 +66,22 @@ public class Solver {
         for (var p_i: p.idToRuleSet.keySet()) {
             deltaSolutions.put(p_i, eval(p, p_i, solutions));
         }
-        solutions = deltaSolutions;
+        Map<Long, Set<List<Long>>> temp = deltaSolutions;
+        deltaSolutions.keySet().forEach(e ->
+                {
+                    solutions.putIfAbsent(e, new HashSet<>());
+                    solutions.get(e).addAll(temp.get(e));
+                }
+        );
+//        solutions = deltaSolutions;
+
 
         boolean done;
         do {
             done = true;
             Map<Long, Set<List<Long>>> deltaPrimeSolutions = deltaSolutions;
             deltaSolutions = new HashMap<>();
+
             for (var p_i: p.idToRuleSet.keySet()) {
                 deltaSolutions.put(p_i, evalIncremental(p, p_i, solutions, deltaPrimeSolutions));
                 deltaSolutions.get(p_i).removeAll(solutions.get(p_i));
@@ -89,6 +98,12 @@ public class Solver {
                 for (var p_i: p.idToRuleSet.keySet()) {
                     solutions.get(p_i).addAll(deltaSolutions.get(p_i));
                 }
+//                Ugly. Add all built in facts to deltaSolutions.
+                Map<Long, Set<List<Long>>> temp_ = deltaSolutions;
+                p.facts.forEach(e -> {
+                    temp_.putIfAbsent(e.pred, new HashSet<>());
+                    temp_.get(e.pred).add(e.ids.stream().map(x -> x.value).collect(Collectors.toCollection(ArrayList::new)));
+                });
             }
         } while(!done);
         return solutions;
