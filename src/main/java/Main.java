@@ -2,39 +2,67 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 /*
 *
 let res = '';
-let n = 100;
-for(let i = 0; i < 20; i++) {
+let n = 60;
+for(let i = 0; i < n; i++) {
     res += `person(${i}).person(${i+100}).`
 }
 res += `person(${n}).`
-for(let i = 0; i < n; i++) {
-    res += `parent(${i+100},${i}).`
-}
 for(let i = 0; i < n; i+=4) {
-    res += `parent(${i+100+1},${i}).parent(${i+100+2},${i}).parent(${i+100+3},${i}).`
+    res += `parent(${i},${i+100}).parent(${i+1},${i+100}).parent(${i+2},${i+100}).parent(${i+3},${i+100}).`
 }
+for(let i = 4; i < n; i++) {
+    res += `parent(${i},${101}).`
+}
+res;
+
+
+
+
+
+let res = '';
+function generateTree(height, counter) {
+    let self = counter;
+    res += `person(${counter}).`;
+    if(height === 0) {
+        return counter + 1;
+    }
+    res += `parent(${++counter}, ${self}).`;
+    counter = generateTree(height - 1, counter);
+    res += `parent(${++counter}, ${self}).`;
+    counter = generateTree(height - 1, counter);
+    return counter;
+}
+
+generateTree(6, 0);
+res;
+
 *
 * */
 
 public class Main {
     public static void main(String[] args) throws Exception {
 
-//        String projectPath = "C:\\Users\\caspe\\OneDrive\\Skrivebord\\Uni\\9. semester\\Programming languages\\datalog-engine\\";
-        String projectPath = "C:\\Users\\adamt\\Desktop\\datalog-engine\\";
-//        var is = new FileInputStream(projectPath + "src\\test\\test1.datalog");
-        var is = new FileInputStream(projectPath + "src\\test\\test2.datalog");
-//        var is = new FileInputStream(projectPath + "src\\test\\MagicSetsOriginal.datalog");
-//        var is = new FileInputStream(projectPath + "src\\test\\MagicSetsMagic.datalog");
+        presentationTestTree();
+//        presentationTest();
+        System.exit(0);
+
+        String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
+//        var is = new FileInputStream(projectPath + "test1.datalog");
+//        var is = new FileInputStream(projectPath + "test2.datalog");
+//        var is = new FileInputStream(projectPath + "MagicSetsOriginal.datalog");
+        var is = new FileInputStream(projectPath + "MagicSetsMagic.datalog");
 //        "src/test/test1.datalog"
 
         var parser = new Parser(is);
         var p = parser.parse();
 //        Checker.checkProgram(p);
         solver.Transformer.setEqSet(p);
+        solver.Transformer.setEqSet2(p);
 //        var solution = Solver.naiveEval(p);
         var solution = solver.Solver.semiNaiveEval(p);
         for (var x: solution.keySet()) {
@@ -48,4 +76,40 @@ public class Main {
 
     }
 
+    public static void presentationTest() throws Exception {
+        String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
+        for (var filePath: List.of("MagicSetsMagic.datalog", "MagicSetsOriginal.datalog")) {
+            long time = System.currentTimeMillis();
+            var is = new FileInputStream(projectPath + filePath);
+            var parser = new Parser(is);
+            var p = parser.parse();
+            solver.Transformer.setEqSet(p);
+            solver.Transformer.setEqSet2(p);
+            var solution = solver.Solver.semiNaiveEval(p);
+            for (var x: solution.keySet()) {
+                System.out.println(p.idToVar.get(x));
+                System.out.println(solution.get(x));
+            }
+            System.out.println("Computed using " + filePath.substring("MagicSets".length(), filePath.indexOf('.')) + ". Took: " + ((System.currentTimeMillis() - time) / 1000) + " seconds");
+        }
+    }
+
+    public static void presentationTestTree() throws Exception {
+        String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
+        for (var filePath: List.of("MagicSetsMagic_tree.datalog", "MagicSetsOriginal_tree.datalog")) {
+            long time = System.currentTimeMillis();
+            var is = new FileInputStream(projectPath + filePath);
+            var parser = new Parser(is);
+            var p = parser.parse();
+            solver.Transformer.setEqSet(p);
+            solver.Transformer.setEqSet2(p);
+            var solution = solver.Solver.semiNaiveEval(p);
+            for (var x: solution.keySet()) {
+                System.out.println(p.idToVar.get(x));
+                System.out.println(solution.get(x));
+            }
+
+            System.out.println("Computed using " + filePath.substring("MagicSets".length(), filePath.indexOf('_')) + ". Took: " + ((System.currentTimeMillis() - time) / 1000) + " seconds");
+        }
+    }
 }
