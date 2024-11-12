@@ -49,19 +49,30 @@ Program parse(): {
     Atom q = null;
 } {
     Constraints(facts, rules) (<QUESTION> q=Atom() <QUESTION>)? <EOF> {
-Checker.checkProgram(facts, rules, q);
-counter = Transformer.changeFactsAndRulesToEDGFormat(facts, rules, counter);
-HashMap<Long, Set<List<Long>>> newFacts = new HashMap<>();
-for(var id: facts.keySet()) {
-    Set<List<Long>> factSet = newFacts.put(id, new HashSet<>());
-    for(var f: facts.get(id)) {
-        List<Long> fact = new ArrayList<>();
-        for(var l: f.ids) {
-            fact.add(l.value);
+    Checker.checkProgram(facts, rules, q);
+    counter = Transformer.changeFactsAndRulesToEDGFormat(facts, rules, counter);
+    HashMap<Long, Set<List<Long>>> newFacts = new HashMap<>();
+    for(var id: facts.keySet()) {
+        Set<List<Long>> factSet = new HashSet<>();
+        newFacts.put(id, factSet);
+        for(var f: facts.get(id)) {
+            List<Long> fact = new ArrayList<>();
+            for(var l: f.ids) {
+                fact.add(l.value);
+            }
+            factSet.add(fact);
         }
-        factSet.add(fact);
     }
-}
+//    In case someone is stupid enough to use a relation without it being derived or having defined facts.
+    for(var ruleSet: rules.values()) {
+        for(var r: ruleSet) {
+            for(var a: r.body) {
+                if(!rules.containsKey(a.pred) && !newFacts.containsKey(a.pred)) {
+                    newFacts.put(a.pred, new HashSet<>());
+                }
+            }
+        }
+    }
 return new Program(newFacts, rules, q, idToVar, counter + 1);
 }
 }
