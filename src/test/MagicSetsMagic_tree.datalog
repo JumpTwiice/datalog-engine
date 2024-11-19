@@ -3,11 +3,6 @@ person(0).parent(1, 0).person(1).parent(2, 1).person(2).parent(3, 2).person(3).p
 
 sg_m_bf(5).
 sg_bf(X,X):- sg_m_bf(X),person(X).
-sg_fb(X,X):- sg_m_fb(X),person(X).
 
-sg_bf(X,Y):-sg_m_bf(X),parent(X,X_1),parent(Y,Y_1),sg_fb(Y_1,X_1).
-sg_m_fb(X_1):-sg_m_bf(X),parent(X,X_1).
-
-
-sg_fb(X,Y):-sg_m_fb(Y),parent(X,X_1),parent(Y,Y_1),sg_bf(Y_1,X_1).
-sg_m_bf(Y_1):-sg_m_fb(Y),parent(Y,Y_1).
+sg_bf(X,Y):-sg_m_bf(X),parent(X,X_1),parent(Y,Y_1),sg_bf(X_1,Y_1).
+sg_m_bf(X_1):-sg_m_bf(X),parent(X,X_1).

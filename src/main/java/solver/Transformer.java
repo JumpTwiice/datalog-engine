@@ -15,13 +15,31 @@ public class Transformer {
             facts.put(newPred, facts.get(pred));
             var factList = facts.remove(pred);
             List<Term> ids = new ArrayList<>();
-            for(var id: factList.get(0).ids) {
+            for(var ignored : factList.getFirst().ids) {
                 ids.add(new Term(counter--, true));
             }
-            rules.get(pred).add(new Rule(new Atom(pred, ids), new ArrayList(List.of(new Atom(newPred, ids)))));
+            rules.get(pred).add(new Rule(new Atom(pred, ids), new ArrayList<>(List.of(new Atom(newPred, ids)))));
         }
         return counter;
     }
+
+    public static void setEqSet2(Program p) {
+        for(var ruleSet: p.rules.values()) {
+            for(var r: ruleSet) {
+                r.equalitySet2 = new EqualitySet2();
+                for(int i = 0; i < r.body.size(); i++) {
+                    var currentRelation = r.body.get(i);
+                    for(int j = 0; j < currentRelation.ids.size(); j++) {
+                        var currentTerm = currentRelation.ids.get(j);
+                        if(currentTerm.isVar) {
+                            r.equalitySet2.setEqual(i, j, currentTerm.value);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
     public static void setEqSet(Program p) {
         for(var ruleSet: p.rules.values()) {

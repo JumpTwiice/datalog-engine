@@ -1,7 +1,10 @@
+import solver.TrieSolver;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /*
@@ -46,30 +49,38 @@ res;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-
-        presentationTestTree();
 //        presentationTest();
-        System.exit(0);
+//        presentationTestTree();
+//        System.exit(0);
 
         String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
 //        var is = new FileInputStream(projectPath + "test1.datalog");
 //        var is = new FileInputStream(projectPath + "test2.datalog");
+        var is = new FileInputStream(projectPath + "test3.datalog");
 //        var is = new FileInputStream(projectPath + "MagicSetsOriginal.datalog");
-        var is = new FileInputStream(projectPath + "MagicSetsMagic.datalog");
 //        "src/test/test1.datalog"
 
         var parser = new Parser(is);
         var p = parser.parse();
 //        Checker.checkProgram(p);
-        solver.Transformer.setEqSet(p);
-        solver.Transformer.setEqSet2(p);
-//        var solution = Solver.naiveEval(p);
-        var solution = solver.Solver.semiNaiveEval(p);
-        for (var x: solution.keySet()) {
-            System.out.println(p.idToVar.get(x));
-//            System.out.println(x);
-            System.out.println(solution.get(x));
+        var solver = new TrieSolver(p);
+        var x = solver.naiveEval();
+        for(var id: x.map.keySet()) {
+            System.out.println(p.idToVar.get(id));
+//            System.out.println(id);
+            System.out.println(x.map.get(id).leaves);
         }
+
+
+//        solver.Transformer.setEqSet(p);
+//        solver.Transformer.setEqSet2(p);
+////        var solution = Solver.naiveEval(p);
+//        var solution = solver.Solver.semiNaiveEval(p);
+//        for (var x: solution.keySet()) {
+//            System.out.println(p.idToVar.get(x));
+////            System.out.println(x);
+//            System.out.println(solution.get(x));
+//        }
 //        System.out.println(p.facts.get(0).ids.get(0).value);
 //        System.out.println(p.facts.get(0).ids.get(0).value);
         is.close();
