@@ -23,6 +23,14 @@ public class Graph {
         }
     }
 
+    public boolean hasEdge(int u, int v) {
+        if (u < size) {
+            List<Integer> list = adjList.get(u);
+            return list.contains(v);
+        }
+        return false;
+    }
+
     public int size() {
         return size;
     }
@@ -31,7 +39,7 @@ public class Graph {
         return adjList.keySet();
     }
 
-    public List<Integer> getEdgesFrom(int u) {
+    public List<Integer> getNeighbors(int u) {
         return adjList.get(u);
     }
 
