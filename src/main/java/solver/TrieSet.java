@@ -30,9 +30,6 @@ public class TrieSet {
             if(maybeSub.children == null && maybeSub.leaves == null) {
                 continue;
             }
-            if(maybeSup == null) {
-                return false;
-            }
             if(!maybeSub.subsetOf(maybeSup)) {
                 return false;
             }
@@ -82,7 +79,7 @@ public class TrieSet {
      * @return
      */
     private SimpleTrie getAll(Atom a, SimpleTrie from, int index, boolean[] isConstant, long[] constantArr) {
-        System.out.println(index);
+//        System.out.println(index);
         if (index == a.ids.size() - 1) {
             if (isConstant[index]) {
                 if(from.leaves.contains(constantArr[index])) {
@@ -90,8 +87,8 @@ public class TrieSet {
                 }
                 return null;
             } else {
-                System.out.println(from.leaves);
-                System.out.println(from.children);
+//                System.out.println(from.leaves);
+//                System.out.println(from.children);
 //                System.out.println(from.children.get(0L).leaves);
                 if(!from.leaves.isEmpty()) {
                     var res = new SimpleTrie(1);
@@ -108,6 +105,7 @@ public class TrieSet {
 
         var maybeChildren = new HashMap<Long, SimpleTrie>();
         var maybeLeaves = new HashSet<Long>();
+//        System.out.println(p.idToVar.get(a.pred));
         for (var x : from.children.keySet()) {
             var child = getAll(a, from.children.get(x), index + 1, isConstant, constantArr);
 //            Assuming the construction of everything else is without error this check is not necessary.
@@ -198,36 +196,84 @@ public class TrieSet {
 //    }
 
 
-
-    public void combine(SimpleTrie other, Atom atom, Rule rule) {
-        outerCombine(other, atom, rule, 0, new ArrayList<>());
+    /**
+     * Combines the previous solution with the new atom.
+     * @param old
+     * @param atom
+     * @param rule
+     */
+    public SimpleTrie combine(SimpleTrie old, Atom atom, Rule rule) {
+        return outerCombine(old, atom, rule, 0, new ArrayList<>());
     }
 
-    private void outerCombine(SimpleTrie to, Atom atom, Rule rule, int index, List<Long> soFar) {
+    /**
+     * Recurses through the old solution, 'to',
+     * @param old
+     * @param atom
+     * @param rule
+     * @param index
+     * @param soFar
+     */
+    private SimpleTrie outerCombine(SimpleTrie old, Atom atom, Rule rule, int index, List<Long> soFar) {
         if(index == atom.ids.size() -1) {
-            SimpleTrie s = innerCombine(atom, rule, soFar);
-            if (s.children == null && s.leaves == null) {
-                to.leaves.remove(soFar.getLast());
-                if(to.leaves.isEmpty()) {
-                    to.leaves = null;
+            var it = old.leaves.iterator();
+//            TODO: Optimize this. Can from length of soFar and at which point in the rule a variable first occurs.
+            while(it.hasNext()) {
+                var x = it.next();
+                soFar.add(x);
+                SimpleTrie s = innerCombine(atom, rule, soFar);
+                if (s == null) {
+                    it.remove();
+                    soFar.remove(x);
+                    continue;
                 }
-                return;
+                if (s.children != null || s.leaves != null) {
+                    if(old.children == null) {
+                        old.initializeChildrenIfNull();
+                    }
+                    old.children.put(x, s);
+//                    it.remove();
+                }
+                soFar.remove(x);
             }
-            if(to.children == null) {
-                to.children = new HashMap<>();
+            if(old.leaves.isEmpty()) {
+                return null;
             }
-            to.children.put(soFar.getLast(), s);
-            return;
+            if(old.children != null) {
+                old.leaves = null;
+            }
+
+//            SimpleTrie s = innerCombine(atom, rule, soFar);
+//            if (s.children == null && s.leaves == null) {
+//                to.leaves.remove(soFar.getLast());
+//                if(to.leaves.isEmpty()) {
+//                    to.leaves = null;
+//                }
+//                return;
+//            }
+            if(old.children == null) {
+                old.children = new HashMap<>();
+            }
+            return old;
         }
-        for(var x: to.children.keySet()) {
+        var newChildren = new HashMap<Long, SimpleTrie>();
+        for(var x: old.children.keySet()) {
             soFar.add(x);
-            var child = to.children.get(x);
-            outerCombine(child, atom, rule, index+1, soFar);
-            soFar.removeLast();
-            if (child.children == null || child.leaves == null) {
-                to.children.remove(x);
+            var child = old.children.get(x);
+            var newChild = outerCombine(child, atom, rule, index+1, soFar);
+            if(newChild != null) {
+                newChildren.put(x, newChild);
             }
+            soFar.removeLast();
+//            if (child.children == null && child.leaves == null) {
+//                old.children.remove(x);
+//            }
         }
+        old.children = newChildren;
+        if(old.children.isEmpty()) {
+            return null;
+        }
+        return old;
     }
 
     /**
@@ -242,16 +288,30 @@ public class TrieSet {
         long[] constantArr = new long[atom.ids.size()];
         for(int i = 0; i < isConstant.length; i++) {
             var t = atom.ids.get(i);
-            isConstant[i] = !t.isVar || (soFar.size() > rule.varMap.get(t.value));
-            constantArr[i] = !t.isVar ? t.value : soFar.get((int) (long) rule.varMap.get(t.value));
+            if(!t.isVar) {
+                isConstant[i] = true;
+                constantArr[i] = t.value;
+            } else if((soFar.size() > rule.varMap.get(t.value))) {
+                isConstant[i] = true;
+                constantArr[i] = soFar.get((int) (long) rule.varMap.get(t.value));
+            }
+//            isConstant[i] = !t.isVar || (soFar.size() > rule.varMap.get(t.value));
+//            constantArr[i] = !t.isVar ? t.value : soFar.get((int) (long) rule.varMap.get(t.value));
         }
 
 //        TODO: Check that clone is correct for constants.
         return this.cloneForTrie(atom, isConstant, constantArr);
     }
 
+    @Override
+    public String toString() {
+        return "TrieSet{" +
+                "map=" + map +
+                '}';
+    }
 
-//    public TrieSet evaluateConstraints(D constraints, Rule r) {
+
+    //    public TrieSet evaluateConstraints(D constraints, Rule r) {
 //
 //    }
 }

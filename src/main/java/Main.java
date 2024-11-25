@@ -55,8 +55,8 @@ public class Main {
 
         String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
 //        var is = new FileInputStream(projectPath + "test1.datalog");
-//        var is = new FileInputStream(projectPath + "test2.datalog");
-        var is = new FileInputStream(projectPath + "test3.datalog");
+//        var is = new FileInputStream(projectPath + "test1.datalog");
+        var is = new FileInputStream(projectPath + "test2.datalog");
 //        var is = new FileInputStream(projectPath + "MagicSetsOriginal.datalog");
 //        "src/test/test1.datalog"
 
@@ -64,11 +64,12 @@ public class Main {
         var p = parser.parse();
 //        Checker.checkProgram(p);
         var solver = new TrieSolver(p);
-        var x = solver.naiveEval();
+//        var x = solver.naiveEval();
+        var x = solver.semiNaiveEval();
         for(var id: x.map.keySet()) {
             System.out.println(p.idToVar.get(id));
 //            System.out.println(id);
-            System.out.println(x.map.get(id).leaves);
+            System.out.println(x.map.get(id));
         }
 
 

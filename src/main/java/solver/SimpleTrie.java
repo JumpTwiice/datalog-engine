@@ -13,11 +13,11 @@ public class SimpleTrie {
 ////        head.ids
 //    }
 
-    public SimpleTrie(int size) {
-        if(size == -1) {
+    public SimpleTrie(int depth) {
+        if(depth <= 0) {
             return;
         }
-        if(size == 1) {
+        if(depth == 1) {
             leaves = new HashSet<>();
         } else {
             children = new HashMap<>();
@@ -33,6 +33,9 @@ public class SimpleTrie {
     }
 
     public synchronized boolean cloneIfEmpty(SimpleTrie source) {
+        if(source == null) {
+            return false;
+        }
         if(children == null && leaves == null) {
             this.children = source.children;
             this.leaves = source.leaves;
@@ -73,6 +76,9 @@ public class SimpleTrie {
     }
 
     public boolean subsetOf(SimpleTrie s) {
+        if(s == null) {
+            return false;
+        }
         if(leaves != null) {
             return s.leaves.containsAll(leaves);
         }
@@ -142,7 +148,10 @@ public class SimpleTrie {
 
     private void addWithIndex(long[] list, int index) {
         if(list.length - index == 1) {
-            leaves.add(list[0]);
+            if(leaves == null) {
+                initializeLeavesIfNull();
+            }
+            leaves.add(list[list.length-1]);
         } else {
             var child = children.computeIfAbsent(list[index], x -> new SimpleTrie(list.length - 1));
             child.addWithIndex(list, index+1);
@@ -166,46 +175,90 @@ public class SimpleTrie {
 
 //    TODO: Possibly pass the to trie.
     public SimpleTrie projectTo(Rule r) {
-        var res = new SimpleTrie(r.positions.length);
-        if(children == null && leaves == null) {
-            return res;
-        }
-        projectTo(0, res, r.positions, new long[r.positions.length - 1]);
+//        var res = new SimpleTrie(r.positions.length);
+        var res = new SimpleTrie(-1);
+//        if(children == null && leaves == null) {
+//            return res;
+//        }
+        projectTo(0, res, r.positions, r.headHelper);
         return res;
     }
 
 //    Slow. Only use on unordered. TODO: Implement fast on ordered.
     private void projectTo(int index, SimpleTrie result, int[][] positions, long[] temp) {
-        System.out.println(index);
-        if(index == positions.length -1) {
-            if(positions[index] != null) {
-                result.add(temp, leaves);
-            }
+        if(index == positions.length) {
+            result.add(temp);
             return;
         }
+        if(index == positions.length - 1) {
+            if(positions[index] == null) {
+                projectTo(index + 1, result, positions, temp);
+//                projectTo(index + 1, null, positions, temp);
+                return;
+            }
+            for(var x: leaves) {
+                for (int i = 0; i < positions[index].length; i++) {
+                    temp[positions[index][i]] = x;
+                }
+                projectTo(index + 1, result, positions, temp);
+            }
+
+            return;
+        }
+//        if(index == positions.length - 1) {
+//            if(positions[index] != null) {
+//                result.add(temp, leaves);
+//            }
+//            return;
+//        }
 
         if(positions[index] != null) {
-//            if(!children.isEmpty()) {
-//                result.initializeChildrenIfNull();
-//            }
+            if(result.children == null) {
+                result.initializeChildrenIfNull();
+            }
             for(var x: children.keySet()) {
                 var callWith = temp.clone();
                 for (int i = 0; i < positions[index].length; i++) {
                     callWith[positions[index][i]] = x;
                 }
-                children.get(x).projectTo(index + 1, result.children.computeIfAbsent(x, ignored -> new SimpleTrie(-1)), positions, callWith);
+                children.get(x).projectTo(index + 1, result, positions, callWith);
+//                children.get(x).projectTo(index + 1, result.children.computeIfAbsent(x, ignored -> new SimpleTrie(-1)), positions, callWith);
 //                projectTo(index + 1, result.children.get(x), positions, callWith);
             }
             return;
         }
-
 //        Don't need to clone since we are not writing anything.
         for(var x: children.keySet()) {
-            projectTo(index + 1, result.children.get(x), positions, temp);
+            children.get(x).projectTo(index + 1, result, positions, temp);
         }
     }
 
-//    public void projectTo(SimpleTrie result, int index, Long[] choices, boolean[] useAsConstant) {
+//    @Override
+//    public String toString() {
+//        return "SimpleTrie{" +
+//                "children=" + children +
+//                ", leaves=" + leaves +
+//                '}';
+//    }
+
+    @Override
+    public String toString() {
+        if(leaves != null && children != null) {
+            return "ERROR! Both children and leaves present";
+        }
+
+        if(leaves == null && children == null) {
+            return "Empty";
+        }
+
+        if(leaves != null) {
+            return leaves.toString();
+        }
+
+        return children.toString();
+    }
+
+    //    public void projectTo(SimpleTrie result, int index, Long[] choices, boolean[] useAsConstant) {
 //        if(index == choices.length - 1) {
 //            if(useAsConstant[index]) {
 //                result.leaves.add(choices[index]);

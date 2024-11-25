@@ -7,11 +7,14 @@ import java.util.stream.Collectors;
 
 public class Transformer {
 
-    public static long changeFactsAndRulesToEDGFormat(Map<Long, List<Atom>> facts, Map<Long, List<Rule>> rules, long counter) {
+    public static long changeFactsAndRulesToEDGFormat(Map<Long, List<Atom>> facts, Map<Long, List<Rule>> rules, long counter, Map<Long, String> idToVar) {
         Set<Long> problematicPreds = new HashSet<>(rules.keySet());
         problematicPreds.retainAll(facts.keySet());
         for(var pred: problematicPreds) {
             var newPred = counter--;
+            idToVar.get(pred);
+            idToVar.put(newPred, idToVar.get(pred) + "_fact");
+
             facts.put(newPred, facts.get(pred));
             var factList = facts.remove(pred);
             List<Term> ids = new ArrayList<>();

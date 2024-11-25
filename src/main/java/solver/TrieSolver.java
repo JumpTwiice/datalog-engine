@@ -15,37 +15,18 @@ public class TrieSolver {
 
     public TrieSet naiveEval() {
         TrieSet solutions = new TrieSet(p);
-        for(var id: solutions.map.keySet()) {
-            System.out.println(p.idToVar.get(id));
-//            System.out.println(id);
-            System.out.println(solutions.map.get(id).leaves);
-        }
-
         boolean done;
+        System.out.println(p.idToVar);
         do {
-//            done = true;
             TrieSet newSolutions = new TrieSet(p);
-            for(var r: p.rules.keySet()) {
-                newSolutions.map.put(r, eval(r, solutions));
+            for(var p_i: p.rules.keySet()) {
+                newSolutions.map.put(p_i, eval(p_i, solutions));
             }
 
             done = newSolutions.subsetOf(solutions);
-
-//            loop: for (var x: newSolutions.map.keySet()) {
-//                var set = newSolutions.map.get(x);
-//                for(var y: set) {
-//                    if(!solutions.get(x).contains(y)) {
-//                        done = false;
-//                        break loop;
-//                    }
-//                }
-//            }
             // Add all new solutions to the old.
             if(!done) {
                 solutions.meld(newSolutions);
-//                for (var x: newSolutions.keySet()) {
-//                    solutions.get(x).addAll(newSolutions.get(x));
-//                }
             }
 
         } while(!done);
@@ -68,25 +49,18 @@ public class TrieSolver {
                 }
         );
 
-
         boolean done;
         do {
+            System.out.println("SOLUTIONS");
+            System.out.println(solutions);
 //            done = true;
             TrieSet deltaPrimeSolutions = deltaSolutions;
+            System.out.println(deltaPrimeSolutions.map);
             deltaSolutions = new TrieSet(p);
 
             for (var p_i: p.rules.keySet()) {
                 deltaSolutions.map.put(p_i, evalIncremental(p_i, solutions, deltaPrimeSolutions));
-//                deltaSolutions.map.get(p_i).removeAll(solutions.get(p_i));
             }
-//            for (var x: deltaSolutions.map.keySet()) {
-//                var set = deltaSolutions.map.get(x);
-//                solutions.map.get(x).add(set);
-//                if(deltaSolutions.get(x).size() != 0) {
-//                    done = false;
-//                    break;
-//                }
-//            }
             // Add all new solutions to the old.
             done = !solutions.meld(deltaSolutions);
         } while(!done);
@@ -99,6 +73,12 @@ public class TrieSolver {
         for (var r: p.rules.get(p_i)) {
             sol.meld(evalRule(r, solutions));
         }
+        if(sol.leaves == null && sol.children == null) {
+            return null;
+        }
+//        if(p.idToVar.get(p_i).equals("reachable")) {
+//            System.out.println(sol);
+//        }
         return sol;
     }
 
@@ -118,6 +98,8 @@ public class TrieSolver {
         if(join == null) {
             return null;
         }
+        System.out.println(join);
+        System.out.println(p.idToVar.get(r.head.pred));
         return join.projectTo(r);
     }
 
@@ -154,30 +136,28 @@ public class TrieSolver {
             constArr[j] = atom.ids.get(j).value;
         }
         if(i == 0) {
-            System.out.println(p.idToVar.get(r.head.pred));
-            System.out.println(Arrays.toString(constBool));
-            System.out.println(Arrays.toString(constArr));
-//            System.out.println(r.body.getFirst().pred);
-//            System.out.println(solutions.map.get(r.body.getFirst().pred).children);
             var source = solutions.map.get(r.body.getFirst().pred);
             if(source == null) {
                 return null;
             }
+            System.out.println(p.idToVar.get(r.body.getFirst().pred));
+            System.out.println(source);
             return solutions.cloneForTrie(r.body.getFirst(), constBool, constArr);
         }
         var prev = generateConstraints(r, solutions, i-1);
         if(prev == null) {
-            return prev;
+            return null;
         }
 //        if(r.head.pred == -2) {
 //            System.out.println("Before");
 //            System.out.println(prev.leaves);
 //        }
-        solutions.combine(prev, r.body.get(i), r);
+        return solutions.combine(prev, r.body.get(i), r);
+//        return solutions.combine(prev, r.body.get(i), r);
 //        if(r.head.pred == -2) {
 //            System.out.println("After");
 //            System.out.println(prev.leaves);
 //        }
-        return prev;
+//        return prev;
     }
 }

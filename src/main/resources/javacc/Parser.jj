@@ -50,7 +50,7 @@ Program parse(): {
 } {
     Constraints(facts, rules) (<QUESTION> q=Atom() <QUESTION>)? <EOF> {
     Checker.checkProgram(facts, rules, q);
-    counter = Transformer.changeFactsAndRulesToEDGFormat(facts, rules, counter);
+    counter = Transformer.changeFactsAndRulesToEDGFormat(facts, rules, counter, idToVar);
     HashMap<Long, Set<List<Long>>> newFacts = new HashMap<>();
     for(var id: facts.keySet()) {
         Set<List<Long>> factSet = new HashSet<>();
