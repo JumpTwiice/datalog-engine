@@ -6,23 +6,24 @@ public class Algorithms {
 
     public static void main(String[] args) throws Exception {
         Graph graph = new Graph(9);
-        graph.addEdge(0,1);
-        graph.addEdge(0,2);
-        graph.addEdge(1,2);
-        graph.addEdge(2,3);
-        graph.addEdge(2,5);
-        graph.addEdge(5,0);
-        graph.addEdge(5,2);
-        graph.addEdge(3,4);
-        graph.addEdge(3,0);
-        graph.addEdge(3,6);
-        graph.addEdge(6,5);
-        graph.addEdge(6,2);
-        graph.addEdge(7,6);
-        graph.addEdge(8,6);
+        graph.addEdge(0, 1);
+        graph.addEdge(0, 2);
+        graph.addEdge(1, 2);
+        graph.addEdge(2, 3);
+        graph.addEdge(2, 5);
+        graph.addEdge(5, 0);
+        graph.addEdge(5, 2);
+        graph.addEdge(3, 4);
+        graph.addEdge(3, 0);
+        graph.addEdge(3, 6);
+        graph.addEdge(6, 5);
+        graph.addEdge(6, 2);
+        graph.addEdge(7, 6);
+        graph.addEdge(8, 6);
 
         int i = 0;
-        Set<Set<Integer>> components = TarjanSCC(graph);
+        List<Set<Integer>> components = computeSCCOrder(graph);
+        assert components != null;
         for (Set<Integer> component : components) {
             System.out.println("SCC " + i++ + ":");
             for (int v : component) {
@@ -30,9 +31,63 @@ public class Algorithms {
             }
         }
 
+
     }
 
-    public static Set<Set<Integer>> TarjanSCC(Graph graph) {
+    /**
+     * Computes the topological sort of the strongly connected components
+     * of the graph
+     * @param graph
+     * @return a topologically sorted list of strongly connected components
+     */
+    public static List<Set<Integer>> computeSCCOrder(Graph graph) {
+        List<Set<Integer>> components = computeSCC(graph);
+
+        Map<Integer, Integer> rootMap = new HashMap<>();
+        Map<Integer, Set<Integer>> componentMap = new HashMap<>();
+        int node = 0;
+        for (var component : components) {
+            componentMap.put(node, component);
+            for (var u : component) {
+                rootMap.put(u, node);
+            }
+            node++;
+        }
+
+        Graph contractedGraph = new Graph(components.size());
+        for (int u : graph.getVertices()) {
+            int root = rootMap.get(u);
+            for (int v : graph.getNeighbors(u) ) {
+                int otherRoot = rootMap.get(v);
+                if (root == otherRoot) continue;
+                if (contractedGraph.hasEdge(root, otherRoot)) continue;
+
+                try {
+                    contractedGraph.addEdge(root, otherRoot);
+                } catch (Exception e) {
+                    System.out.println(e.toString());
+                    return null;
+                }
+            }
+        }
+
+        List<Integer> sorted;
+        try {
+            sorted = topologicalSort(contractedGraph);
+        } catch (Exception e) {
+            System.out.println(e.toString());
+            return null;
+        }
+
+        List<Set<Integer>> result = new ArrayList<>();
+        for (var root : sorted) {
+            result.add(componentMap.get(root));
+        }
+
+        return result;
+    }
+
+    public static List<Set<Integer>> computeSCC(Graph graph) {
         int n = graph.size();
         int[] disc = new int[n];
         int[] low = new int[n];
@@ -43,26 +98,26 @@ public class Algorithms {
 
         boolean[] onStack = new boolean[n];
         Stack<Integer> stack = new Stack<>();
-        Set<Set<Integer>> components = new HashSet<>();
+        List<Set<Integer>> components = new ArrayList<>();
 
         int time = 0;
         for (int u : graph.getVertices()) {
             if (disc[u] == -1)
-                time = TarjanSCCUtil(graph, u, disc, low, onStack, stack, components, time);
+                time = SCCUtil(graph, u, disc, low, onStack, stack, components, time);
         }
         return components;
     }
 
-    private static int TarjanSCCUtil(Graph graph, int u, int[] disc, int[] low, boolean[] onStack,
-                                     Stack<Integer> stack, Set<Set<Integer>> components, int time) {
+    private static int SCCUtil(Graph graph, int u, int[] disc, int[] low, boolean[] onStack,
+                               Stack<Integer> stack, List<Set<Integer>> components, int time) {
         disc[u] = time;
         low[u] = time++;
         onStack[u] = true;
         stack.push(u);
 
-        for (int v : graph.getEdgesFrom(u)) {
+        for (int v : graph.getNeighbors(u)) {
             if (disc[v] == -1) {
-                time = TarjanSCCUtil(graph, v, disc, low, onStack, stack, components, time);
+                time = SCCUtil(graph, v, disc, low, onStack, stack, components, time);
                 low[u] = Math.min(low[u], low[v]);
             } else if (onStack[v]) {
                 low[u] = Math.min(low[u], disc[v]);
@@ -83,88 +138,30 @@ public class Algorithms {
         return time;
     }
 
-//    public static void KosarajuSCC(int[][] adjMatrix) {
-//        // Line 1 CLRS
-//        int n = adjMatrix.length;
-//        int[] ordering = new int[n];
-//        for (int i = 0; i < n; i++) {
-//            ordering[i] = i;
-//        }
-//        int[] times = new int[n];
-//        DepthFirstSearch(adjMatrix, times, ordering, null, false);
-//
-//        // Line 2
-//        int[][] transAdjMatrix = transposeGraph(adjMatrix);
-//
-//        // Line 3
-//        Arrays.sort(times);
-//        ordering = new int[n];
-//        for (int i = 0; i < n; i++) {
-//            ordering[i] = times[n - i - 1];
-//        }
-//        times = new int[n];
-//
-//        List<DepthFirstTree> trees = new ArrayList<>();
-//        for (int i = 0; i < n; i++) {
-//            trees.add(new DepthFirstTree(-1));
-//        }
-//        DepthFirstSearch(transAdjMatrix, times, ordering, trees, false);
-//
-//        // Line 4
-//    }
-//
-//    public static void DepthFirstSearch(int[][] adjMatrix,
-//                                        int[] times,
-//                                        List<DepthFirstTree> trees,
-//                                        boolean createTrees) {
-//        int n = adjMatrix.length;
-//        boolean[] visited = new boolean[n];
-//        int time = 0;
-//        for (int i = 0; i < n; i++) {
-//            if (visited[i]) continue;
-//            for (int j = 0; j < n; j++) {
-//                if (adjMatrix[i][j] == 1) {
-//                    time = DFSVisit(adjMatrix, i, visited, times, time, trees, createTrees);
-//                }
-//            }
-//        }
-//    }
-//
-//    public static void DepthFirstSearch(int[][] adjMatrix,
-//                                        int[] times,
-//                                        int[] ordering,
-//                                        List<DepthFirstTree> trees,
-//                                        boolean createTrees) {
-//        int n = adjMatrix.length;
-//        boolean[] visited = new boolean[n];
-//        int time = 0;
-//        for (int i : ordering) {
-//            if (visited[i]) continue;
-//            for (int j = 0; j < n; j++) {
-//                if (adjMatrix[i][j] == 1) {
-//                    time = DFSVisit(adjMatrix, i, visited, times, time, trees, createTrees);
-//                }
-//            }
-//        }
-//    }
-//
-//    private static int DFSVisit(int[][] adjMatrix,
-//                                int node,
-//                                boolean[] visited,
-//                                int[] times,
-//                                int time,
-//                                List<DepthFirstTree> trees,
-//                                boolean createTrees) {
-//        int n = adjMatrix.length;
-//        for (int j = 0; j < n; j++) {
-//            if (adjMatrix[node][j] == 1) {
-//                if (!visited[j]) continue;
-//                time = DFSVisit(adjMatrix, j, visited, times, time);
-//            }
-//        }
-//        visited[node] = true;
-//        times[node] = time++;
-//        return time;
-//    }
+    public static List<Integer> topologicalSort(Graph graph) throws Exception {
+        List<Integer> sorted = new LinkedList<>();
+        Color[] colors = new Color[graph.size()];
+        Arrays.fill(colors, Color.WHITE);
+        for (int u : graph.getVertices()) {
+            if (colors[u] == Color.WHITE) {
+                topologicalSortVisit(graph, u, colors, sorted);
+            }
+        }
+        return sorted;
+    }
+
+    private static void topologicalSortVisit(Graph graph, int node, Color[] colors, List<Integer> sorted) throws Exception {
+        colors[node] = Color.GRAY;
+        for (int v : graph.getNeighbors(node)) {
+            if (colors[v] == Color.WHITE) {
+                topologicalSortVisit(graph, v, colors, sorted);
+            } else if (colors[v] == Color.GRAY) {
+                throw new Exception("Cycle detected");
+            }
+        }
+        colors[node] = Color.BLACK;
+        sorted.addFirst(node);
+    }
 }
+
 

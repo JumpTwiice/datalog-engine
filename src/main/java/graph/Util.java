@@ -3,7 +3,7 @@ package graph;
 import ast.Program;
 
 public class Util {
-    public static Graph toGraph(Program p) throws Exception {
+    public static Graph graphFromProgram(Program p) throws Exception {
         int n = (int)p.maxPred;
         Graph graph = new Graph(n);
         for (long i = 0; i < n; i++) {
