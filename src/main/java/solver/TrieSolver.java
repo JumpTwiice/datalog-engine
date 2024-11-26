@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class TrieSolver {
+public class TrieSolver implements Solver<SimpleTrie> {
 
     private Program p;
     private TrieMap solutions;

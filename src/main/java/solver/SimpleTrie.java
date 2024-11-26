@@ -100,13 +100,24 @@ public class SimpleTrie {
     }
 
 
-
+    /**
+     * Create a {@link SimpleTrie} from a predicate (set of tuples)
+     *
+     * @param lists the predicate to create a {@link SimpleTrie} from, i.e., a set of tuples
+     * @return A {@link SimpleTrie} over the constants of the tuples
+     */
     public static SimpleTrie trieFrom(Set<List<Long>> lists) {
         var returnTrie = new SimpleTrie(lists.iterator().next().size());
         lists.forEach(returnTrie::add);
         return returnTrie;
     }
 
+    /**
+     * Check if <code>this</code> is a subset of <code>s</code>
+     *
+     * @param s The source {@link SimpleTrie}
+     * @return <code>true</code> if <code>this</code> is a subset of <code>s</code>
+     */
     public boolean subsetOf(SimpleTrie s) {
         if (s == null) {
             return false;
@@ -174,10 +185,22 @@ public class SimpleTrie {
 
     }
 
+    /**
+     * Add <code>list</code> to <code>this</code>
+     *
+     * @param list
+     */
     public void add(List<Long> list) {
         addWithIndex(list, 0);
     }
 
+    /**
+     * Add <code>list</code> to <code>this</code>. Recursively goes down the {@link SimpleTrie}
+     * while updating/creating the path
+     *
+     * @param list
+     * @param index
+     */
     private void addWithIndex(List<Long> list, int index) {
         if (list.size() - index == 1) {
             leaves.add(list.getLast());
@@ -187,6 +210,11 @@ public class SimpleTrie {
         }
     }
 
+    /**
+     * Add <code>list</code> to <code>this</code>
+     *
+     * @param list
+     */
     public void add(long[] list) {
         addWithIndex(list, 0);
     }
@@ -230,6 +258,13 @@ public class SimpleTrie {
         }
     }
 
+    /**
+     * Performs a relational projection from <code>r</code>'s body "attributes" to the resulting
+     * tuple represented in the <code>r</code>'s head
+     *
+     * @param r A {@link Rule}
+     * @return A {@link SimpleTrie} representing <code>r</code>'s head
+     */
 //    TODO: Possibly pass the to trie.
     public SimpleTrie projectTo(Rule r) {
 //        var res = new SimpleTrie(r.positions.length);
