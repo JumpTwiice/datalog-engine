@@ -1,11 +1,23 @@
-import solver.TrieSolver;
+import solver.*;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+
+/*
+let n = 100;
+let res = '';
+for(let i = 0; i < n; i++) {
+    res += `edge(${i},${i+1}).`
+}
+res += 'edge(X,Y) :- edge(Y,X).\n';
+res+='reachable(X,Y) :- edge(X,Y).\n';
+res+='reachable(X,Y) :- reachable(X,Z), reachable(Z,Y).';
+console.log(res);
+
+
+
+ */
+
 
 /*
 *
@@ -55,35 +67,29 @@ public class Main {
 
         String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
 //        var is = new FileInputStream(projectPath + "test1.datalog");
-//        var is = new FileInputStream(projectPath + "test1.datalog");
         var is = new FileInputStream(projectPath + "test2.datalog");
+//        var is = new FileInputStream(projectPath + "test3.datalog");
+//        var is = new FileInputStream(projectPath + "test4.datalog");
+//        var is = new FileInputStream(projectPath + "test5.datalog");
 //        var is = new FileInputStream(projectPath + "MagicSetsOriginal.datalog");
 //        "src/test/test1.datalog"
 
         var parser = new Parser(is);
         var p = parser.parse();
 //        Checker.checkProgram(p);
-        var solver = new TrieSolver(p);
+        var solver = new SCCSolverDecorator<>(p, new SimpleSolver(p));
+//        var solver = new SCCSolverDecorator<>(p, new TrieSolver(p));
+//        var solver = new TrieSolver(p);
+//        var solver = new SimpleSolver(p);
 //        var x = solver.naiveEval();
         var x = solver.semiNaiveEval();
-        for(var id: x.map.keySet()) {
-            System.out.println(p.idToVar.get(id));
-//            System.out.println(id);
-            System.out.println(x.map.get(id));
-        }
-
-
-//        solver.Transformer.setEqSet(p);
-//        solver.Transformer.setEqSet2(p);
-////        var solution = Solver.naiveEval(p);
-//        var solution = solver.Solver.semiNaiveEval(p);
-//        for (var x: solution.keySet()) {
-//            System.out.println(p.idToVar.get(x));
-////            System.out.println(x);
-//            System.out.println(solution.get(x));
+        var predMap = solver.solutionsToPredMap();
+        System.out.println(Solver.formatSolution(predMap, p));
+//        for(var id: x.keySet()) {
+//            System.out.println(p.idToVar.get(id));
+////            System.out.println(id);
+//            System.out.println(x.get(id));
 //        }
-//        System.out.println(p.facts.get(0).ids.get(0).value);
-//        System.out.println(p.facts.get(0).ids.get(0).value);
         is.close();
 
     }
@@ -96,8 +102,9 @@ public class Main {
             var parser = new Parser(is);
             var p = parser.parse();
             solver.Transformer.setEqSet(p);
-            solver.Transformer.setEqSet2(p);
-            var solution = solver.Solver.semiNaiveEval(p);
+//            solver.Transformer.setEqSet2(p);
+            var solver = new SimpleSolver(p);
+            var solution = solver.semiNaiveEval();
             for (var x: solution.keySet()) {
                 System.out.println(p.idToVar.get(x));
                 System.out.println(solution.get(x));
@@ -115,7 +122,8 @@ public class Main {
             var p = parser.parse();
             solver.Transformer.setEqSet(p);
             solver.Transformer.setEqSet2(p);
-            var solution = solver.Solver.semiNaiveEval(p);
+            SimpleSolver solver = new SimpleSolver(p);
+            var solution = solver.semiNaiveEval();
             for (var x: solution.keySet()) {
                 System.out.println(p.idToVar.get(x));
                 System.out.println(solution.get(x));

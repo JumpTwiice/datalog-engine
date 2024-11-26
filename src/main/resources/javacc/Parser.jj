@@ -6,7 +6,8 @@ PARSER_BEGIN(Parser)
     import ast.*;import solver.Checker;import solver.Transformer;
 import java.util.*;
 public class Parser {
-    private static Long counter = -1L;
+    private static Long predCounter = 0L;
+    private static Long varCounter = 0L;
     // TODO: Variables in different rules will map to the same number. Probably fine?
     private static Map<String, Long> varToId = new HashMap<>();
     private static Map<Long, String> idToVar = new HashMap<>();
@@ -50,7 +51,7 @@ Program parse(): {
 } {
     Constraints(facts, rules) (<QUESTION> q=Atom() <QUESTION>)? <EOF> {
     Checker.checkProgram(facts, rules, q);
-    counter = Transformer.changeFactsAndRulesToEDGFormat(facts, rules, counter, idToVar);
+    predCounter = Transformer.changeFactsAndRulesToEDGFormat(facts, rules, predCounter, idToVar);
     HashMap<Long, Set<List<Long>>> newFacts = new HashMap<>();
     for(var id: facts.keySet()) {
         Set<List<Long>> factSet = new HashSet<>();
@@ -73,7 +74,7 @@ Program parse(): {
             }
         }
     }
-return new Program(newFacts, rules, q, idToVar, counter + 1);
+return new Program(newFacts, rules, q, idToVar, predCounter + 1);
 }
 }
 
@@ -138,7 +139,7 @@ Long PredIdentifier() : {
             if (varToId.containsKey(t.image)) {
                 value = varToId.get(t.image);
             } else {
-                value = counter--;
+                value = predCounter++;
                 varToId.put(t.image, value);
                 idToVar.put(value, t.image);
             }
@@ -154,7 +155,7 @@ Term VarIdentifier() : {
             if (varToId.containsKey(t.image)) {
                 value = varToId.get(t.image);
             } else {
-                value = counter--;
+                value = varCounter++;
                 varToId.put(t.image, value);
                 idToVar.put(value, t.image);
             }

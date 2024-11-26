@@ -11,7 +11,8 @@ public class Transformer {
         Set<Long> problematicPreds = new HashSet<>(rules.keySet());
         problematicPreds.retainAll(facts.keySet());
         for(var pred: problematicPreds) {
-            var newPred = counter--;
+            var newPred = counter++;
+            var varCounter = 0L;
             idToVar.get(pred);
             idToVar.put(newPred, idToVar.get(pred) + "_fact");
 
@@ -19,7 +20,7 @@ public class Transformer {
             var factList = facts.remove(pred);
             List<Term> ids = new ArrayList<>();
             for(var ignored : factList.getFirst().ids) {
-                ids.add(new Term(counter--, true));
+                ids.add(new Term(varCounter++, true));
             }
             rules.get(pred).add(new Rule(new Atom(pred, ids), new ArrayList<>(List.of(new Atom(newPred, ids)))));
         }

@@ -30,8 +30,6 @@ public class Algorithms {
                 System.out.println(v);
             }
         }
-
-
     }
 
     /**
