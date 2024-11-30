@@ -67,22 +67,34 @@ public class Main {
 
         String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
 //        var is = new FileInputStream(projectPath + "test1.datalog");
-        var is = new FileInputStream(projectPath + "test2.datalog");
+//        var is = new FileInputStream(projectPath + "test2.datalog");
 //        var is = new FileInputStream(projectPath + "test3.datalog");
 //        var is = new FileInputStream(projectPath + "test4.datalog");
 //        var is = new FileInputStream(projectPath + "test5.datalog");
+//        var is = new FileInputStream(projectPath + "test6.datalog");
+//        var is = new FileInputStream(projectPath + "test7.datalog");
 //        var is = new FileInputStream(projectPath + "MagicSetsOriginal.datalog");
+        var is = new FileInputStream(projectPath + "MagicSetsMagic.datalog");
 //        "src/test/test1.datalog"
 
         var parser = new Parser(is);
         var p = parser.parse();
+        System.out.println(p);
+//        System.out.println("IDTOVAR");
+        System.out.println(p.idToVar);
+        p = Transformer.magicSets(p);
+        System.out.println(p.idToVar);
+        System.out.println(p);
+
+        p.setupPositionsForRules();
 //        Checker.checkProgram(p);
-        var solver = new SCCSolverDecorator<>(p, new SimpleSolver(p));
+//        var solver = new SCCSolverDecorator<>(p, new SimpleSolver(p));
 //        var solver = new SCCSolverDecorator<>(p, new TrieSolver(p));
-//        var solver = new TrieSolver(p);
+        var solver = new TrieSolver(p);
 //        var solver = new SimpleSolver(p);
 //        var x = solver.naiveEval();
         var x = solver.semiNaiveEval();
+//        System.out.println(x.map);
         var predMap = solver.solutionsToPredMap();
         System.out.println(Solver.formatSolution(predMap, p));
 //        for(var id: x.keySet()) {
@@ -102,7 +114,6 @@ public class Main {
             var parser = new Parser(is);
             var p = parser.parse();
             solver.Transformer.setEqSet(p);
-//            solver.Transformer.setEqSet2(p);
             var solver = new SimpleSolver(p);
             var solution = solver.semiNaiveEval();
             for (var x: solution.keySet()) {
@@ -121,7 +132,6 @@ public class Main {
             var parser = new Parser(is);
             var p = parser.parse();
             solver.Transformer.setEqSet(p);
-            solver.Transformer.setEqSet2(p);
             SimpleSolver solver = new SimpleSolver(p);
             var solution = solver.semiNaiveEval();
             for (var x: solution.keySet()) {

@@ -4,7 +4,7 @@ import java.util.*;
 
 public class Rule {
     public Atom head;
-    public List<Atom> body;
+    public ArrayList<Atom> body;
     public EqualitySet equalitySet;
     public EqualitySet2 equalitySet2;
 
@@ -13,9 +13,12 @@ public class Rule {
     public int[][] positions; // Array of indices of variables from the head in varList
     public long[] headHelper; // Array of values to be used in the head
 
-    public Rule(Atom head, List<Atom> body) {
+    public Rule(Atom head, ArrayList<Atom> body) {
         this.head = head;
         this.body = body;
+    }
+
+    public void setupPositions() {
         HashSet<Long> seen = new HashSet<>();
         List<Long> vars = new ArrayList<>();
         varMap = new HashMap<>();
@@ -32,10 +35,7 @@ public class Rule {
         for(int i = 0; i < vars.size(); i++) {
             varList[i] = vars.get(i);
         }
-        setupPositions();
-    }
 
-    public void setupPositions() {
         headHelper = new long[head.ids.size()];
         var variablePositionToHeadPosition = new HashMap<Integer, ArrayList<Integer>>();
         for (int i = 0; i < head.ids.size(); i++) {
@@ -58,5 +58,9 @@ public class Rule {
         }
 //        positions = new int[head.ids.size()][];
 
+    }
+
+    public String toString(Program p) {
+        return head.toString(p) + " :- " + body.stream().map(x -> x.toString(p)).reduce("", (acc, cur) -> acc + ", " + cur).substring(2) + '.';
     }
 }

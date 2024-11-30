@@ -10,4 +10,8 @@ public class Atom {
         this.pred = pred;
         this.ids = ids;
     }
+
+    public String toString(Program p) {
+        return p.idToVar.get(pred) + '(' + ids + ')';
+    }
 }

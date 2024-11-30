@@ -1,0 +1,5 @@
+person(0).person(1).parent(0,1).
+
+samegeneration(X,X):- person(X).
+samegeneration(X,Y):- samegeneration(X,Y).
+?samegeneration(0,X)?

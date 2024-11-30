@@ -7,6 +7,7 @@ import java.util.*;
 public class SimpleTrie {
     public Map<Long, SimpleTrie> children;
     public Set<Long> leaves;
+    public int depth;
 
 
 //    public SimpleTrie(Atom head) {

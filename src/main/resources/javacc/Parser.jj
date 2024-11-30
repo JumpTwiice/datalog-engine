@@ -80,7 +80,7 @@ return new Program(newFacts, rules, q, idToVar, predCounter + 1);
 
 void Constraints(Map<Long, List<Atom>> facts, Map<Long, List<Rule>> rules) : {
     Atom h;
-    List<Atom> b = null;
+    ArrayList<Atom> b = null;
 } {
     h = Atom() (b=Body())? {if(b == null) {
         facts.putIfAbsent(h.pred, new ArrayList<>());
@@ -96,8 +96,8 @@ void Constraints(Map<Long, List<Atom>> facts, Map<Long, List<Rule>> rules) : {
 }} <DOT> (Constraints(facts, rules))?
 }
 
-List<Atom> Body(): {
-    List<Atom> bodyList = new ArrayList<>();
+ArrayList<Atom> Body(): {
+    ArrayList<Atom> bodyList = new ArrayList<>();
     Atom p;
 } {
     // Possibly empty body which can have a trailing comma. TODO.
@@ -157,7 +157,7 @@ Term VarIdentifier() : {
             } else {
                 value = varCounter++;
                 varToId.put(t.image, value);
-                idToVar.put(value, t.image);
+//                idToVar.put(value, t.image);
             }
             return new Term(value, true);
         }

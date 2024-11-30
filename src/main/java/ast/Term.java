@@ -9,4 +9,11 @@ public class Term {
         this.isVar = isVar;
     }
 
+    public String toString() {
+        if(isVar) {
+            return "X" + value;
+        } else {
+            return "" + value;
+        }
+    }
 }

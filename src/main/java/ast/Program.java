@@ -1,5 +1,7 @@
 package ast;
 
+import solver.Solver;
+
 import java.util.*;
 
 public class Program {
@@ -14,6 +16,28 @@ public class Program {
         this.rules = rules;
         this.query = query;
         this.idToVar = idToVar;
+    }
+
+    public void setupPositionsForRules() {
+        for(var ruleSet: rules.values()) {
+            for(var r: ruleSet) {
+                r.setupPositions();
+            }
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "Program{" +
+                "query=" + query.toString(this) + "\n" +
+                "facts=\n\t" + Solver.formatSolution(facts, this).replace("\n", "\n\t") +
+                "\nrules=\n" +
+                rules.values().stream().map(ruleset -> ruleset.stream().map(r -> r.toString(this)).reduce("", (acc, cur) -> acc + "\n\t" + cur)).reduce("", (acc, cur) -> acc + "\n" + cur).substring(2) +
+//                rules +
+//                ", query=" + query.toString(this) +
+//                ", idToVar=" + idToVar +
+//                ", nextPred=" + nextPred +
+                "\n}";
     }
 
     public Program cloneProgram() {
