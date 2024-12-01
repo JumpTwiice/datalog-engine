@@ -99,8 +99,6 @@ public class Transformer {
                 var headAtom = (AdornedAtom) r.head;
                 var magicHead = magic(headAtom);
                 r.body.addFirst(magicHead);
-//                r.body.addFirst(magicHead);
-//                q(x): m(x), b(x,y)
                 ruleSet.add(new Rule(r.head, r.body));
                 var currentSip = sips.get(r);
                 for (var sipEntry : currentSip) {
@@ -117,10 +115,6 @@ public class Transformer {
             }
         }
         var queryMagic = magic((AdornedAtom) adornedProgram.query);
-//        Set<List<Long>> queryFactSet = new HashSet<>();
-//        var constantsInQuery = queryMagic.ids.stream().filter(x -> !x.isVar).map(x -> x.value).collect(Collectors.toCollection(ArrayList::new));
-//        queryFactSet.add(constantsInQuery);
-//        newProgram.facts.put(newProgram.nextPred++, queryFactSet);
         Program newProgram = new Program(p.facts, ruleMap, adornedProgram.query, adornedProgram.idToVar, adornedProgram.nextPred);
         Transformer.changeFactsAndRulesToEDGFormat(newProgram);
         var renamed = renamePred(newProgram, queryMagic);
@@ -129,9 +123,7 @@ public class Transformer {
     }
 
     private static Program renamePred(Program p, AdornedAtom magicQuery) {
-//        var newProgram = new Program(null, null, p.query, new HashMap<>(), 0L);
         var idCounter = 0L;
-//        Map<Long, Map<List<Boolean>, Long>> adornedToNewId = new HashMap<>();
         Map<Long, Map<Boolean, Map<List<Boolean>, Long>>> adornedToNewId = new HashMap<>();
         Map<Long, List<Rule>> newRules = new HashMap<>();
         Map<Long, Set<List<Long>>> newFacts = new HashMap<>();
@@ -159,7 +151,7 @@ public class Transformer {
 
         adornedToNewId.put(magicQuery.pred, queryMagicMap);
         idToVar.put(magicQueryID, magicQuery.generatePred(p));
-//        idToVar.put(magicQueryID, magicQuery p.idToVar.get(magicQuery.pred) + "_" + boolArrToBoundString(magicQuery.isBoundArray));
+
         Set<List<Long>> queryFactSet = new HashSet<>();
         var constantsInQuery = magicQuery.ids.stream().map(x -> x.value).collect(Collectors.toCollection(ArrayList::new));
         queryFactSet.add(constantsInQuery);
@@ -173,17 +165,7 @@ public class Transformer {
                 idCounter = headCounterNewIdNewAtom.x();
                 long headPred = headCounterNewIdNewAtom.y().x();
                 var newHead = headCounterNewIdNewAtom.y().y();
-//                var innerMap = adornedToNewId.computeIfAbsent(headAtom.pred, x -> new HashMap<>());
-//                var magicMap = innerMap.computeIfAbsent(headAtom.isMagic, x -> new HashMap<>());
-//                long headPred;
-//                if (!magicMap.containsKey(headAtom.isBoundArray)) {
-//                    headPred = idCounter++;
-//                    idToVar.put(headPred, headAtom.generatePred(p));
-////                    idToVar.put(headPred, p.idToVar.get(headAtom.pred) + "_" + boolArrToBoundString(headAtom.isBoundArray));
-//                } else {
-//                    headPred = magicMap.get(headAtom.isBoundArray);
-//                }
-//                var newHead = new Atom(headPred, headAtom.ids);
+
                 ArrayList<Atom> newBody = new ArrayList<>(r.body.size());
                 for (var b_A : r.body) {
                     var bodyAtom = (AdornedAtom) b_A;
@@ -203,7 +185,6 @@ public class Transformer {
         if (!bodyMagicMap.containsKey(queryAtom.isBoundArray)) {
             queryPred = idCounter++;
             idToVar.put(queryPred, queryAtom.generatePred(p));
-//            idToVar.put(queryPred, p.idToVar.get(queryAtom.pred) + "_" + boolArrToBoundString(headAtom.isBoundArray));
         } else {
             queryPred = bodyMagicMap.get(queryAtom.isBoundArray);
         }
@@ -227,128 +208,12 @@ public class Transformer {
         return new Tuple<>(idCounter, new Tuple<>(newPred, newBodyAtom));
     }
 
-//    private static Program renamePred(Program p, AdornedAtom magicQuery) {
-////        var newProgram = new Program(null, null, p.query, new HashMap<>(), 0L);
-//        var idCounter = 0L;
-//        Map<Long, Map<List<Boolean>, Long>> adornedToNewId = new HashMap<>();
-//        Map<Long, Map<Boolean, Map<List<Boolean>, Long>> adornedToNewId = new HashMap<>();
-//        Map<Long, List<Rule>> newRules = new HashMap<>();
-//        Map<Long, Set<List<Long>>> newFacts = new HashMap<>();
-//        Map<Long, String> idToVar = new HashMap<>();
-//
-////        Handle the facts
-//        for (var factEntry : p.facts.entrySet()) {
-//            var newId = idCounter++;
-//            Map<List<Boolean>, Long> newMap = new HashMap<>();
-//            newMap.put(null, newId);
-//            adornedToNewId.put(newId, newMap);
-//            idToVar.put(newId, p.idToVar.get(factEntry.getKey()));
-//            newFacts.put(newId, factEntry.getValue());
-//        }
-//        System.out.println(idToVar);
-////        Add the magicQuery as a fact
-//        var magicQueryID = idCounter++;
-//        Map<List<Boolean>, Long> newMap = new HashMap<>();
-//        newMap.put(magicQuery.isBoundArray, magicQueryID);
-//        adornedToNewId.put(magicQueryID, newMap);
-//        idToVar.put(magicQueryID, magicQuery.generatePred(p));
-////        idToVar.put(magicQueryID, magicQuery p.idToVar.get(magicQuery.pred) + "_" + boolArrToBoundString(magicQuery.isBoundArray));
-//        Set<List<Long>> queryFactSet = new HashSet<>();
-//        var constantsInQuery = magicQuery.ids.stream().map(x -> x.value).collect(Collectors.toCollection(ArrayList::new));
-//        queryFactSet.add(constantsInQuery);
-//        newFacts.put(magicQueryID, queryFactSet);
-//
-//
-////        Handle the rules
-//        for (var ruleEntry : p.rules.entrySet()) {
-//            for (var r : ruleEntry.getValue()) {
-//                var headAtom = (AdornedAtom) r.head;
-//                var innerMap = adornedToNewId.computeIfAbsent(headAtom.pred, x -> new HashMap<>());
-//                long headPred;
-//                if (!innerMap.containsKey(headAtom.isBoundArray)) {
-//                    headPred = idCounter++;
-//                    idToVar.put(headPred, headAtom.generatePred(p));
-////                    idToVar.put(headPred, p.idToVar.get(headAtom.pred) + "_" + boolArrToBoundString(headAtom.isBoundArray));
-//                } else {
-//                    headPred = innerMap.get(headAtom.isBoundArray);
-//                }
-//                var newHead = new Atom(headPred, headAtom.ids);
-//                System.out.println("OLD HEAD");
-//                System.out.println(headAtom.toString(p));
-//                System.out.println("NEW HEAD");
-//                System.out.println(newHead.toString(p));
-//
-//                ArrayList<Atom> newBody = new ArrayList<>(r.body.size());
-//                for (var b_A : r.body) {
-//                    var bodyAtom = (AdornedAtom) b_A;
-//                    long bodyPred;
-//                    var bodyInnerMap = adornedToNewId.computeIfAbsent(bodyAtom.pred, x -> new HashMap<>());
-//                    System.out.println(bodyInnerMap);
-//                    if (!bodyInnerMap.containsKey(bodyAtom.isBoundArray)) {
-//                        bodyPred = idCounter++;
-//                        idToVar.put(bodyPred, bodyAtom.generatePred(p));
-////                        idToVar.put(bodyPred, p.idToVar.get(bodyAtom.pred) + "_" + boolArrToBoundString(bodyAtom.isBoundArray));
-//                    } else {
-//                        bodyPred = bodyInnerMap.get(bodyAtom.isBoundArray);
-//                    }
-//                    var newBodyAtom = new Atom(bodyPred, bodyAtom.ids);
-//                    newBody.add(newBodyAtom);
-//                }
-//                var ruleSet = newRules.computeIfAbsent(headPred, x -> new ArrayList<>());
-//                ruleSet.add(new Rule(newHead, newBody));
-//            }
-//        }
-////        Handle query
-//        var queryAtom = (AdornedAtom) p.query;
-//        var innerMap = adornedToNewId.computeIfAbsent(queryAtom.pred, x -> new HashMap<>());
-//        long queryPred;
-//        if (!innerMap.containsKey(queryAtom.isBoundArray)) {
-//            queryPred = idCounter++;
-//            idToVar.put(queryPred, queryAtom.generatePred(p));
-////            idToVar.put(queryPred, p.idToVar.get(queryAtom.pred) + "_" + boolArrToBoundString(headAtom.isBoundArray));
-//        } else {
-//            queryPred = innerMap.get(queryAtom.isBoundArray);
-//        }
-//        var newQuery = new Atom(queryPred, queryAtom.ids);
-//
-//        return new Program(newFacts, newRules, newQuery, idToVar, idCounter);
-//    }
-
-//    private static String boolArrToBoundString(List<Boolean> isBound) {
-////        TODO: Right way?
-//        return isBound.stream().map(b -> b ? "b" : "f").reduce("", String::concat);
-//    }
-
-
-//    private static Program renamePred(Program p, AdornedAtom query) {
-//        var newProgram = new Program(p.facts, null, p.query, p.idToVar, p.nextPred);
-//        Map<Long, Map<List<Boolean>, Long>> varToId = new HashMap<>();
-//        Map<Long, List<Rule>> newRules = new HashMap<>();
-//        for(var ruleEntry: newProgram.rules.entrySet()) {
-//            for(var r: ruleEntry.getValue()) {
-//                var head = (AdornedAtom) r.head;
-//                var innserMap = varToId.computeIfAbsent(head.pred, x -> new HashMap<>());
-//                var newPred = innserMap.computeIfAbsent(head.isBoundArray, x -> newProgram.nextPred++);
-////                newProgram.idToVar.putIfAbsent();
-//                if() {
-//
-//                }
-//            }
-//        }
-//    }
-
-
     private static Tuple<Program, Map<Rule, Set<SIPEntry>>> adornment(Program p) {
 
         AdornedAtom adornedQuery = adornAtom(p.query);
         Program newProgram = new Program(p.facts, new HashMap<>(), adornedQuery, p.idToVar, p.nextPred);
         Map<Long, Set<List<Boolean>>> workList = new HashMap<>();
         Map<Long, Set<List<Boolean>>> seen = new HashMap<>();
-
-//        Map<Long, Map<List<Boolean>, AdornedAtom>> adornedAtoms = new HashMap<>();
-//        Map<List<Boolean>, AdornedAtom> adornedQueryMap = new HashMap<>();
-//        adornedQueryMap.put(adornedQuery.adornment, adornedQuery);
-//        adornedAtoms.put(adornedQuery.pred, adornedQueryMap);
 
         Set<List<Boolean>> querySet = new HashSet<>();
         querySet.add(adornedQuery.isBoundArray);
@@ -361,7 +226,6 @@ public class Transformer {
         Map<Rule, Set<SIPEntry>> sips = new HashMap<>();
 
 
-//        Map<AdornedAtom, SIP> sips = new HashMap<>();
         while (!workList.isEmpty()) {
             var it = workList.entrySet().iterator();
             var current = it.next();
@@ -381,14 +245,12 @@ public class Transformer {
                 var ruleSetForId = newProgram.rules.computeIfAbsent(currentID, x -> new ArrayList<>());
                 ruleSetForId.add(newRule);
                 sips.put(newRule, newSIP);
-//                mapForRule.put(currentAdornment, newSIP);
             }
         }
         return new Tuple<>(newProgram, sips);
     }
 
     private static Rule createSIP(Rule r, AdornedAtom headAtom, Program p, Map<Long, Set<List<Boolean>>> seen, Map<Long, Set<List<Boolean>>> workList, Set<SIPEntry> entries) {
-//        Set<SIPEntry> entries = new HashSet<>();
         Atom[] newBody = new Atom[r.body.size()];
 
         Set<Long> bound = new HashSet<>();
@@ -440,11 +302,6 @@ public class Transformer {
             var inducedAtom = new AdornedAtom(next.pred, next.ids, null);
             if (foundNewBound) {
                 HashSet<AdornedAtom> dependencies = new HashSet<>();
-//                System.out.println(next.toString(p));
-//                next.ids.stream()
-//                        .filter(x -> !x.isVar || bound.contains(x.value))
-//                        .forEach(x -> System.out.println())
-//                        .forEach(System.out::println);
                 next.ids.stream()
                         .filter(x -> x.isVar && bound.contains(x.value))
                         .map(x -> originExplanation.get(x.value))
@@ -459,15 +316,9 @@ public class Transformer {
                     entries.add(newEntry);
                 }
 
-//                if (p.facts.containsKey(next.pred)) {
-//                    inducedAtom.isBoundArray = null;
-//                }
             } else if (!foundNewEDB) {
                 inducedAtom.isBoundArray = next.ids.stream().map(x -> true).collect(Collectors.toCollection(ArrayList::new));
             }
-//            if (!foundNewEDB && !foundNewBound) {
-//                inducedAtom.isBoundArray = next.ids.stream().map(x -> true).collect(Collectors.toCollection(ArrayList::new));
-//            }
 
             if (inducedAtom.isBoundArray != null) {
                 var setForPred = seen.computeIfAbsent(inducedAtom.pred, x -> new HashSet<>());
@@ -476,10 +327,6 @@ public class Transformer {
                     var workListSet = workList.computeIfAbsent(inducedAtom.pred, x -> new HashSet<>());
                     workListSet.add(inducedAtom.isBoundArray);
                 }
-//                var possibleSeenBefore = seen.get(inducedAtom.pred);
-//                if(possibleSeenBefore == null) {
-//
-//                }
             }
 
             explanationOfNewlyBound.add(inducedAtom);
@@ -491,84 +338,7 @@ public class Transformer {
                     });
             handled.add(next);
             newBody[index] = inducedAtom;
-//            newRule.body.set(index, inducedAtom);
         }
         return new Rule(headAtom, new ArrayList<>(Arrays.asList(newBody)));
     }
 }
-
-//class SIP {
-//    Set<SIPEntry> entries;
-//
-//    public SIP(Rule r, AdornedAtom headAtom, Program p) {
-//
-//        }
-//
-//
-//        //            q(x) :- a(x,y), b(x,z), c(z,y)
-////            a(x,y). q ->_x a
-////            q & a -> y
-////            b(x,z). q ->_x b
-////            q & b -> z
-////            q & a ->_y c
-////            q & b ->_z c
-//
-////            q & a & b ->_{y,z} c
-//
-//
-////            q(x) :- fact(z), c(z,y)
-//
-//
-////            if (foundNewBound) {
-////                var adornArr = next.ids.stream().map(x -> !x.isVar || bound.contains(x.value)).collect(Collectors.toCollection(ArrayList::new));
-////
-//////            q(x) :- a(x,y), b(x,z), c(z,y)
-//////            a(x,y). q ->_x a
-//////            q & a -> y
-//////            b(x,z). q ->_x b
-//////            q & b -> z
-//////            q & a ->_y c
-//////            q & b ->_z c
-////
-//////            q & a & b ->_{y,z} c
-////
-////
-//////            q(x) :- fact(z), c(z,y)
-////
-////
-////                HashSet<AdornedAtom> dependencies = new HashSet<>();
-////                next.ids.stream()
-////                        .filter(x -> x.isVar && bound.contains(x.value))
-////                        .map(x -> originExplanation.get(x.value))
-////                        .forEach(dependencies::addAll);
-////
-////                var explanationOfNewlyBound = (HashSet<AdornedAtom>) dependencies.clone();
-////                var inducedAtom = new AdornedAtom(next.pred, next.ids, adornArr);
-////                var newEntry = new SIPEntry(dependencies, inducedAtom);
-////                entries.add(newEntry);
-////                explanationOfNewlyBound.add(inducedAtom);
-////                next.ids.stream()
-////                        .filter(x -> x.isVar && !bound.contains(x.value))
-////                        .forEach(x -> {
-////                            bound.add(x.value);
-////                            originExplanation.put(x.value, explanationOfNewlyBound);
-////                        });
-////                handled.add(next);
-////                continue;
-////            }
-////
-////            handled.add(next);
-////            var inducedAtom = new AdornedAtom(next.pred, next.ids, null);
-////            HashSet<AdornedAtom> explanationOfNewlyBound = new HashSet<>();
-////            explanationOfNewlyBound.add(inducedAtom);
-////            next.ids.stream()
-////                    .filter(x -> x.isVar && !bound.contains(x.value))
-////                    .forEach(x -> {
-////                        bound.add(x.value);
-////                        originExplanation.put(x.value, explanationOfNewlyBound);
-////                    });
-////
-////        }
-//
-//    }
-//}

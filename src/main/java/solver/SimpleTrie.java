@@ -7,12 +7,6 @@ import java.util.*;
 public class SimpleTrie {
     public Map<Long, SimpleTrie> children;
     public Set<Long> leaves;
-    public int depth;
-
-
-//    public SimpleTrie(Atom head) {
-////        head.ids
-//    }
 
     public SimpleTrie(int depth) {
         if (depth <= 0) {
@@ -52,7 +46,6 @@ public class SimpleTrie {
             this.children = source.children;
             this.leaves = source.leaves;
             return source.leaves != null || source.children != null;
-//            return true;
         }
         return false;
     }
@@ -156,12 +149,6 @@ public class SimpleTrie {
             return true;
         }
 
-//        if(leaves == null && children == null) {
-//            setChildrenIfNull(source.children);
-//            leaves = source.leaves;
-//            children = source.children;
-//            return;
-//        }
         if (leaves != null) {
             int size = leaves.size();
             leaves.addAll(source.leaves);
@@ -268,11 +255,7 @@ public class SimpleTrie {
      */
 //    TODO: Possibly pass the to trie.
     public SimpleTrie projectTo(Rule r) {
-//        var res = new SimpleTrie(r.positions.length);
         var res = new SimpleTrie(-1);
-//        if(children == null && leaves == null) {
-//            return res;
-//        }
         projectTo(0, res, r.positions, r.headHelper);
         return res;
     }
@@ -295,7 +278,6 @@ public class SimpleTrie {
         if (index == positions.length - 1) {
             if (positions[index] == null) {
                 projectTo(index + 1, result, positions, temp);
-//                projectTo(index + 1, null, positions, temp);
                 return;
             }
             for (var x : leaves) {
@@ -307,12 +289,6 @@ public class SimpleTrie {
 
             return;
         }
-//        if(index == positions.length - 1) {
-//            if(positions[index] != null) {
-//                result.add(temp, leaves);
-//            }
-//            return;
-//        }
 
         if (positions[index] != null) {
             if (result.children == null) {
@@ -324,8 +300,6 @@ public class SimpleTrie {
                     callWith[positions[index][i]] = x;
                 }
                 children.get(x).projectTo(index + 1, result, positions, callWith);
-//                children.get(x).projectTo(index + 1, result.children.computeIfAbsent(x, ignored -> new SimpleTrie(-1)), positions, callWith);
-//                projectTo(index + 1, result.children.get(x), positions, callWith);
             }
             return;
         }
@@ -334,14 +308,6 @@ public class SimpleTrie {
             children.get(x).projectTo(index + 1, result, positions, temp);
         }
     }
-
-//    @Override
-//    public String toString() {
-//        return "SimpleTrie{" +
-//                "children=" + children +
-//                ", leaves=" + leaves +
-//                '}';
-//    }
 
     @Override
     public String toString() {
@@ -359,27 +325,4 @@ public class SimpleTrie {
 
         return "SimpleTrie{" + children + "}";
     }
-
-    //    public void projectTo(SimpleTrie result, int index, Long[] choices, boolean[] useAsConstant) {
-//        if(index == choices.length - 1) {
-//            if(useAsConstant[index]) {
-//                result.leaves.add(choices[index]);
-//            } else {
-//                result.leaves = leaves;
-//            }
-//        }
-//        if(useAsConstant[index]) {
-//            result.children = new HashMap<>();
-//            var child = new SimpleTrie(choices.length - index);
-//            projectTo(child, index+1, choices,useAsConstant);
-//            result.children.put(choices[index], child);
-//            return;
-//        }
-//        for(var x: children.keySet()) {
-//            var child = new SimpleTrie(choices.length - index);
-//            children.get(x).projectTo(child, index+1,choices,useAsConstant);
-//            children.put(x,child);
-//        }
-//    }
-
 }

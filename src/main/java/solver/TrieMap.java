@@ -16,11 +16,6 @@ public class TrieMap implements Map<Long, SimpleTrie> {
     public TrieMap(Program p) {
         map = new HashMap<>();
         this.p = p;
-//        for (var id : p.rules.keySet()) {
-////            int size = p.rules.get(id).getFirst().head.ids.size();
-////            map.put(id, null);
-////            map.put(id, new SimpleTrie(size));
-//        }
         for (var id : p.facts.keySet()) {
             map.put(id, SimpleTrie.trieFrom(p.facts.get(id)));
         }
@@ -66,9 +61,6 @@ public class TrieMap implements Map<Long, SimpleTrie> {
             if (maybeSup == null) {
                 return false;
             }
-//            if(maybeSub.children == null && maybeSub.leaves == null) {
-//                continue;
-//            }
             if (!maybeSub.subsetOf(maybeSup)) {
                 return false;
             }
@@ -200,7 +192,6 @@ public class TrieMap implements Map<Long, SimpleTrie> {
         }
         if (isConstant[index]) {
             return getAll(a, from.children.get(constantArr[index]), index + 1, isConstant, constantArr);
-//            return from.children.get(constantArr[index]);
         }
 
         var maybeChildren = new HashMap<Long, SimpleTrie>();
@@ -254,7 +245,6 @@ public class TrieMap implements Map<Long, SimpleTrie> {
             return cloneForTrie(atom, constBool, constArr);
         }
         return outerCombine(old, atom, rule, 0, new ArrayList<>());
-//        return outerCombine(old, atom, rule, 0, new ArrayList<>());
     }
 
     /**
@@ -311,9 +301,6 @@ public class TrieMap implements Map<Long, SimpleTrie> {
                 newChildren.put(x, newChild);
             }
             soFar.removeLast();
-//            if (child.children == null && child.leaves == null) {
-//                old.children.remove(x);
-//            }
         }
         old.children = newChildren;
         if (old.children.isEmpty()) {
@@ -436,9 +423,4 @@ public class TrieMap implements Map<Long, SimpleTrie> {
     public Set<Entry<Long, SimpleTrie>> entrySet() {
         return map.entrySet();
     }
-
-
-    //    public TrieSet evaluateConstraints(D constraints, Rule r) {
-//
-//    }
 }
