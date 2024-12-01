@@ -60,33 +60,41 @@ res;
 * */
 
 public class Main {
+    public static String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
+
     public static void main(String[] args) throws Exception {
 //        presentationTest();
 //        presentationTestTree();
 //        System.exit(0);
+//        runAllTests();
+//        System.exit(0);
 
-        String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
+//        String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
 //        var is = new FileInputStream(projectPath + "test1.datalog");
-//        var is = new FileInputStream(projectPath + "test2.datalog");
+        var is = new FileInputStream(projectPath + "test2.datalog");
 //        var is = new FileInputStream(projectPath + "test3.datalog");
 //        var is = new FileInputStream(projectPath + "test4.datalog");
 //        var is = new FileInputStream(projectPath + "test5.datalog");
 //        var is = new FileInputStream(projectPath + "test6.datalog");
 //        var is = new FileInputStream(projectPath + "test7.datalog");
+//        var is = new FileInputStream(projectPath + "test8.datalog");
 //        var is = new FileInputStream(projectPath + "MagicSetsOriginal.datalog");
-        var is = new FileInputStream(projectPath + "MagicSetsMagic.datalog");
+//        var is = new FileInputStream(projectPath + "MagicSetsMagic.datalog");
 //        "src/test/test1.datalog"
 
         var parser = new Parser(is);
         var p = parser.parse();
         System.out.println(p);
 //        System.out.println("IDTOVAR");
-        System.out.println(p.idToVar);
+//        System.out.println(p.idToVar);
         p = Transformer.magicSets(p);
-        System.out.println(p.idToVar);
+//        System.out.println(p.idToVar);
         System.out.println(p);
+//        System.out.println(p.rules);
+//        System.out.println(p.facts);
 
         p.setupPositionsForRules();
+//        Transformer.setEqSet(p);
 //        Checker.checkProgram(p);
 //        var solver = new SCCSolverDecorator<>(p, new SimpleSolver(p));
 //        var solver = new SCCSolverDecorator<>(p, new TrieSolver(p));
@@ -103,7 +111,28 @@ public class Main {
 //            System.out.println(x.get(id));
 //        }
         is.close();
+    }
 
+    private static void runAllTests() throws Exception {
+        var x = new String[] {
+                "test1.datalog",
+                "test2.datalog",
+                "test3.datalog",
+                "test4.datalog",
+                "test5.datalog",
+                "test6.datalog",
+                "test7.datalog",};
+        for(var i = 0; i < x.length; i++) {
+            System.out.println("RUNNING ON " + x[i]);
+            var is = new FileInputStream(projectPath + x[i]);
+            var parser = new Parser(is);
+            var p = parser.parse();
+            p = Transformer.magicSets(p);
+            p.setupPositionsForRules();
+            var solver = new TrieSolver(p);
+            solver.semiNaiveEval();
+            solver.solutionsToPredMap();
+        }
     }
 
     public static void presentationTest() throws Exception {

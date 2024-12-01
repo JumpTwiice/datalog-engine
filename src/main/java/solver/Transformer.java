@@ -28,6 +28,27 @@ public class Transformer {
         return counter;
     }
 
+    public static void changeFactsAndRulesToEDGFormat(Program p) {
+        Set<Long> problematicPreds = new HashSet<>(p.rules.keySet());
+        problematicPreds.retainAll(p.facts.keySet());
+        for (var pred : problematicPreds) {
+            var newPred = p.nextPred++;
+            var varCounter = 0L;
+            p.idToVar.get(pred);
+            p.idToVar.put(newPred, p.idToVar.get(pred) + "_fact");
+
+            p.facts.put(newPred, p.facts.get(pred));
+            var factList = p.facts.remove(pred);
+            var firstElem = factList.iterator().next();
+            List<Term> ids = new ArrayList<>(firstElem.size());
+            for (var i = 0; i < firstElem.size(); i++) {
+                ids.add(new Term(varCounter++, true));
+            }
+
+            p.rules.get(pred).add(new Rule(new Atom(pred, ids), new ArrayList<>(List.of(new Atom(newPred, ids)))));
+        }
+    }
+
     public static void setEqSet(Program p) {
         for (var ruleSet : p.rules.values()) {
             for (var r : ruleSet) {
@@ -101,7 +122,10 @@ public class Transformer {
 //        queryFactSet.add(constantsInQuery);
 //        newProgram.facts.put(newProgram.nextPred++, queryFactSet);
         Program newProgram = new Program(p.facts, ruleMap, adornedProgram.query, adornedProgram.idToVar, adornedProgram.nextPred);
-        return renamePred(newProgram, queryMagic);
+        Transformer.changeFactsAndRulesToEDGFormat(newProgram);
+        var renamed = renamePred(newProgram, queryMagic);
+        changeFactsAndRulesToEDGFormat(renamed);
+        return renamed;
     }
 
     private static Program renamePred(Program p, AdornedAtom magicQuery) {
@@ -121,7 +145,7 @@ public class Transformer {
             newMap.put(null, newId);
             Map<Boolean, Map<List<Boolean>, Long>> magicMap = new HashMap<>();
             magicMap.put(false, newMap);
-            adornedToNewId.put(newId, magicMap);
+            adornedToNewId.put(factEntry.getKey(), magicMap);
             idToVar.put(newId, p.idToVar.get(factEntry.getKey()));
             newFacts.put(newId, factEntry.getValue());
         }
@@ -133,7 +157,7 @@ public class Transformer {
         Map<Boolean, Map<List<Boolean>, Long>> queryMagicMap = new HashMap<>();
         queryMagicMap.put(true, newMap);
 
-        adornedToNewId.put(magicQueryID, queryMagicMap);
+        adornedToNewId.put(magicQuery.pred, queryMagicMap);
         idToVar.put(magicQueryID, magicQuery.generatePred(p));
 //        idToVar.put(magicQueryID, magicQuery p.idToVar.get(magicQuery.pred) + "_" + boolArrToBoundString(magicQuery.isBoundArray));
         Set<List<Long>> queryFactSet = new HashSet<>();
@@ -416,8 +440,13 @@ public class Transformer {
             var inducedAtom = new AdornedAtom(next.pred, next.ids, null);
             if (foundNewBound) {
                 HashSet<AdornedAtom> dependencies = new HashSet<>();
+//                System.out.println(next.toString(p));
+//                next.ids.stream()
+//                        .filter(x -> !x.isVar || bound.contains(x.value))
+//                        .forEach(x -> System.out.println())
+//                        .forEach(System.out::println);
                 next.ids.stream()
-                        .filter(x -> !x.isVar || bound.contains(x.value))
+                        .filter(x -> x.isVar && bound.contains(x.value))
                         .map(x -> originExplanation.get(x.value))
                         .forEach(dependencies::addAll);
                 explanationOfNewlyBound.addAll(dependencies);

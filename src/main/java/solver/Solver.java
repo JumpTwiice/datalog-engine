@@ -18,7 +18,7 @@ public interface Solver<V> {
         List<String> preds = new ArrayList<>();
         for (var id: solutions.keySet()) {
             var tuples = solutions.get(id);
-            StringBuilder out = new StringBuilder(p.idToVar.get(id) + " = {");
+            StringBuilder out = new StringBuilder();
             for (List<Long> tuple: tuples) {
                 out.append("(");
                 for (long constant: tuple) {
@@ -27,8 +27,13 @@ public interface Solver<V> {
                 out = new StringBuilder(out.substring(0, out.length() - 1));
                 out.append("), ");
             }
-            out = new StringBuilder(out.substring(0, out.length() - 2) + "}");
-            preds.add(out.toString());
+            var toAdd = p.idToVar.get(id) + " = {";
+            if(!out.isEmpty()) {
+                System.out.println(out);
+                toAdd += out.substring(0, out.length() - 2);
+            }
+            toAdd +=  "}";
+            preds.add(toAdd);
         }
         return String.join("\n", preds);
     }

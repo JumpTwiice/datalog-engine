@@ -23,7 +23,7 @@ public class TrieSolver implements Solver<SimpleTrie> {
         do {
             TrieMap newSolutions = new TrieMap(p);
             for (var p_i : p.rules.keySet()) {
-                newSolutions.map.put(p_i, eval(p_i, solutions));
+                newSolutions.put(p_i, eval(p_i, solutions));
             }
 
             done = newSolutions.subsetOf(solutions);
@@ -41,7 +41,7 @@ public class TrieSolver implements Solver<SimpleTrie> {
 //        TrieMap solutions = new TrieMap(p);
         TrieMap deltaSolutions = new TrieMap(p);
         for (var p_i : p.rules.keySet()) {
-            deltaSolutions.map.put(p_i, eval(p_i, solutions));
+            deltaSolutions.put(p_i, eval(p_i, solutions));
         }
         solutions = deltaSolutions.cloneTrieSet();
 
@@ -52,8 +52,8 @@ public class TrieSolver implements Solver<SimpleTrie> {
             deltaSolutions = new TrieMap(p);
 
             for (var p_i : p.rules.keySet()) {
-                deltaSolutions.map.put(p_i, evalIncremental(p_i, solutions, deltaPrimeSolutions));
-//                deltaSolutions.map.get(p_i);
+                deltaSolutions.put(p_i, evalIncremental(p_i, solutions, deltaPrimeSolutions));
+//                deltaSolutions.get(p_i);
             }
             // Add all new solutions to the old.
             done = !solutions.meld(deltaSolutions);
@@ -88,18 +88,13 @@ public class TrieSolver implements Solver<SimpleTrie> {
         if (sol.leaves == null && sol.children == null) {
             return null;
         }
-//        if(p.idToVar.get(p_i).equals("reachable")) {
-//            System.out.println(sol);
-//        }
         return sol;
     }
 
     public SimpleTrie evalIncremental(long p_i, TrieMap solutions, TrieMap deltaSolutions) {
-//        Set<List<Long>> sol = new HashSet<>();
         SimpleTrie sol = null;
         for (var r : p.rules.get(p_i)) {
             sol = solutions.meldSimpleTries(sol, evalRuleIncremental(r, solutions, deltaSolutions));
-//            sol.meld(evalRuleIncremental(r, solutions, deltaSolutions));
         }
         return sol;
     }
@@ -110,8 +105,6 @@ public class TrieSolver implements Solver<SimpleTrie> {
         if (join == null) {
             return null;
         }
-//        System.out.println(join);
-//        System.out.println(p.idToVar.get(r.head.pred));
         return join.projectTo(r);
     }
 
@@ -121,26 +114,16 @@ public class TrieSolver implements Solver<SimpleTrie> {
 
 //        var newNewSolutions = new SimpleTrie(-1);
 //        TODO: Should not be over solutions, but rules.
-        var result = solutions.map.keySet().stream().map(x -> {
+        var result = solutions.keySet().stream().map(x -> {
 //            TODO: If we want to do it in parallel we need to make a shallow clone of the map.
-            var temp = solutions.map.get(x);
-            solutions.map.put(x, newSolutions.map.get(x));
+            var temp = solutions.get(x);
+            solutions.put(x, newSolutions.get(x));
             var res = evalRule(r, solutions);
-            solutions.map.put(x, temp);
+            solutions.put(x, temp);
             return res;
         }).reduce(null, solutions::meldSimpleTries);
 
         return result;
-
-
-//        solutions.map.keySet().forEach(x -> {
-//            var temp = solutions.map.get(x);
-//            solutions.map.put(x, newSolutions.map.get(x));
-//            newNewSolutions = solutions.meldSimpleTries(newNewSolutions, evalRule(r, solutions));
-////            newNewSolutions.meld(evalRule(r, solutions));
-//            solutions.map.put(x, temp);
-//        });
-//        return newNewSolutions;
     }
 
     public SimpleTrie join(Rule r, TrieMap solutions) {
@@ -157,34 +140,17 @@ public class TrieSolver implements Solver<SimpleTrie> {
      */
     public SimpleTrie generateConstraints(Rule r, TrieMap solutions, int i) {
         var atom = r.body.get(i);
-        var constBool = new boolean[atom.ids.size()];
-        var constArr = new long[atom.ids.size()];
-//      Unsure of whether branch prediction will be a problem, but might as well try to avoid it.
-        for (int j = 0; j < constBool.length; j++) {
-            constBool[j] = !atom.ids.get(j).isVar;
-            constArr[j] = atom.ids.get(j).value;
-        }
+        var boolConst = atom.getBoolAndConstArr();
+        var constBool = boolConst.x();
+        var constArr = boolConst.y();
         if (i == 0) {
-            var source = solutions.map.get(r.body.getFirst().pred);
+            var source = solutions.get(r.body.getFirst().pred);
             if (source == null) {
                 return null;
             }
             return solutions.cloneForTrie(r.body.getFirst(), constBool, constArr);
         }
         var prev = generateConstraints(r, solutions, i - 1);
-        if (prev == null) {
-            return null;
-        }
-//        if(r.head.pred == -2) {
-//            System.out.println("Before");
-//            System.out.println(prev.leaves);
-//        }
         return solutions.combine(prev, r.body.get(i), r);
-//        return solutions.combine(prev, r.body.get(i), r);
-//        if(r.head.pred == -2) {
-//            System.out.println("After");
-//            System.out.println(prev.leaves);
-//        }
-//        return prev;
     }
 }

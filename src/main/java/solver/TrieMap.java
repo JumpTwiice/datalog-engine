@@ -29,6 +29,7 @@ public class TrieMap implements Map<Long, SimpleTrie> {
 
     /**
      * Initialize with the map. Do not do anything based on the program, except store it
+     *
      * @param map
      * @param p
      */
@@ -39,8 +40,8 @@ public class TrieMap implements Map<Long, SimpleTrie> {
 
     public Map<Long, Set<List<Long>>> solutionsToPredMap() {
         var res = new HashMap<Long, Set<List<Long>>>();
-        for(var entry: map.entrySet()) {
-            if(entry.getValue() == null) {
+        for (var entry : map.entrySet()) {
+            if (entry.getValue() == null) {
                 res.put(entry.getKey(), new HashSet<>());
             } else {
                 res.put(entry.getKey(), toStandardFormat(entry.getValue()));
@@ -81,23 +82,23 @@ public class TrieMap implements Map<Long, SimpleTrie> {
 
     public TrieMap cloneTrieSet() {
         HashMap<Long, SimpleTrie> newMap = new HashMap<>();
-        for(var e: map.entrySet()) {
-            newMap.put(e.getKey(), this.cloneTrie(e.getValue())) ;
+        for (var e : map.entrySet()) {
+            newMap.put(e.getKey(), this.cloneTrie(e.getValue()));
         }
         return new TrieMap(newMap, p);
     }
 
     private SimpleTrie cloneTrie(SimpleTrie value) {
-        if(value == null) {
+        if (value == null) {
             return null;
         }
-        if(value.leaves != null) {
+        if (value.leaves != null) {
             var res = new SimpleTrie(1);
             res.leaves.addAll(value.leaves);
             return res;
         }
         var res = new SimpleTrie(2);
-        for(var e: value.children.entrySet()) {
+        for (var e : value.children.entrySet()) {
             res.children.put(e.getKey(), cloneTrie(e.getValue()));
         }
         return res;
@@ -112,7 +113,7 @@ public class TrieMap implements Map<Long, SimpleTrie> {
      */
     public boolean meld(TrieMap s) {
         boolean change = false;
-        for (var x : map.keySet()) {
+        for (var x : s.map.keySet()) {
             var source = s.map.get(x);
             if (source == null) {
                 continue;
@@ -123,7 +124,7 @@ public class TrieMap implements Map<Long, SimpleTrie> {
                 change = true;
                 continue;
             }
-            change |= map.get(x).meld(s.map.get(x));
+            change |= destination.meld(source);
         }
         return change;
     }
@@ -241,7 +242,19 @@ public class TrieMap implements Map<Long, SimpleTrie> {
      * @return a new {@link SimpleTrie} combining <code>atom</code> with <code>old</code>
      */
     public SimpleTrie combine(SimpleTrie old, Atom atom, Rule rule) {
+//        If the previous conditions are not satisfiable adding more cannot help
+        if (old == null) {
+            return null;
+        }
+//        If there were no variables so far we just return the matches for the next atom
+        if (old.children == null && old.leaves == null) {
+            var boolConst = atom.getBoolAndConstArr();
+            var constBool = boolConst.x();
+            var constArr = boolConst.y();
+            return cloneForTrie(atom, constBool, constArr);
+        }
         return outerCombine(old, atom, rule, 0, new ArrayList<>());
+//        return outerCombine(old, atom, rule, 0, new ArrayList<>());
     }
 
     /**
@@ -255,29 +268,30 @@ public class TrieMap implements Map<Long, SimpleTrie> {
      * @param soFar
      */
     private SimpleTrie outerCombine(SimpleTrie old, Atom atom, Rule rule, int index, List<Long> soFar) {
-        if(old.leaves != null) {
-
-//        }
+        if (old.leaves != null) {
 //        if (index == atom.ids.size() - 1) {
+//            Iterate over the leaves and get the solutions associated with 'atom'
+//            If nothing matches the leaf
+//            If all leaves are removed set it to null
             var it = old.leaves.iterator();
 //            TODO: Optimize this. Can from length of soFar and at which point in the rule a variable first occurs.
             while (it.hasNext()) {
                 var x = it.next();
                 soFar.add(x);
                 SimpleTrie s = innerCombine(atom, rule, soFar);
+                soFar.remove(x);
                 if (s == null) {
                     it.remove();
-                    soFar.remove(x);
                     continue;
                 }
-                if (s.children != null || s.leaves != null) {
-                    if (old.children == null) {
-                        old.initializeChildrenIfNull();
-                    }
-                    old.children.put(x, s);
-//                    it.remove();
+                if (s.children == null && s.leaves == null) {
+                    continue;
                 }
-                soFar.remove(x);
+                if (old.children == null) {
+                    old.initializeChildrenIfNull();
+                }
+                old.children.put(x, s);
+//                    it.remove();
             }
             if (old.leaves.isEmpty()) {
                 return null;
@@ -286,17 +300,6 @@ public class TrieMap implements Map<Long, SimpleTrie> {
                 old.leaves = null;
             }
 
-//            SimpleTrie s = innerCombine(atom, rule, soFar);
-//            if (s.children == null && s.leaves == null) {
-//                to.leaves.remove(soFar.getLast());
-//                if(to.leaves.isEmpty()) {
-//                    to.leaves = null;
-//                }
-//                return;
-//            }
-            if (old.children == null) {
-                old.children = new HashMap<>();
-            }
             return old;
         }
         var newChildren = new HashMap<Long, SimpleTrie>();
@@ -337,8 +340,6 @@ public class TrieMap implements Map<Long, SimpleTrie> {
                 isConstant[i] = true;
                 constantArr[i] = soFar.get((int) (long) rule.varMap.get(t.value));
             }
-//            isConstant[i] = !t.isVar || (soFar.size() > rule.varMap.get(t.value));
-//            constantArr[i] = !t.isVar ? t.value : soFar.get((int) (long) rule.varMap.get(t.value));
         }
 
 //        TODO: Check that clone is correct for constants.
@@ -362,7 +363,7 @@ public class TrieMap implements Map<Long, SimpleTrie> {
             return;
         }
 
-        for (var child: s.children.keySet()) {
+        for (var child : s.children.keySet()) {
             var clone = (ArrayList<Long>) soFar.clone();
             clone.add(child);
             toStandardFormat(s.children.get(child), result, clone);
