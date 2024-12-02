@@ -8,7 +8,7 @@ import java.util.*;
 public class Parser {
     private static Long predCounter = 0L;
     private static Long varCounter = 0L;
-    // TODO: Variables in different rules will map to the same number. Probably fine?
+    // TODO: Maybe store variable mapping? It would allow us to reconstruct the program more faithfully
     private static Map<String, Long> varToId = new HashMap<>();
     private static Map<Long, String> idToVar = new HashMap<>();
 }
@@ -22,6 +22,7 @@ PARSER_END(Parser)
   | < COMMA : "," >
   | < DOT : "." >
   | < QUESTION : "?" >
+  | < DASH : "-" >
   | < IMPLIED_BY : ":-" >
   | < VAR_IDENTIFIER : ["A"-"Z"] (<LETTER> | <DIGIT> | "_")* >
   | < PRED_IDENTIFIER : ["a"-"z"] (<LETTER> | <DIGIT> | "_")* >
@@ -49,7 +50,7 @@ Program parse(): {
     Map<Long, List<Rule>> rules = new HashMap<>();
     Atom q = null;
 } {
-    Constraints(facts, rules) (<QUESTION> q=Atom() <QUESTION>)? <EOF> {
+    Constraints(facts, rules) (<QUESTION> <DASH> q=Atom())? <EOF> {
     Checker.checkProgram(facts, rules, q);
     predCounter = Transformer.changeFactsAndRulesToEDGFormat(facts, rules, predCounter, idToVar);
     HashMap<Long, Set<List<Long>>> newFacts = new HashMap<>();
@@ -100,7 +101,6 @@ ArrayList<Atom> Body(): {
     ArrayList<Atom> bodyList = new ArrayList<>();
     Atom p;
 } {
-    // Possibly empty body which can have a trailing comma. TODO.
     <IMPLIED_BY> p=Atom() {bodyList.add(p);}  (<COMMA> p=Atom() { bodyList.add(p); })*  { return bodyList; }
 }
 

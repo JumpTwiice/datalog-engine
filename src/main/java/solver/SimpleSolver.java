@@ -15,21 +15,6 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
         solutions = initializeWithFacts();
     }
 
-
-
-
-/*    public static Map<Long, Set<List<Long>>> initializeSolutions(Program p) {
-        Map<Long, Set<List<Long>>> solutions = new HashMap<>();
-        for(var x: p.rules.keySet()) {
-            solutions.putIfAbsent(x, new HashSet<>());
-        }
-        for(var x: p.facts) {
-            solutions.putIfAbsent(x.pred, new HashSet<>());
-            solutions.get(x.pred).add(x.ids.stream().map(x_ -> x_.value).collect(Collectors.toCollection(ArrayList::new)));
-        }
-        return solutions;
-    }*/
-
     public Map<Long, Set<List<Long>>> initializeWithFacts() {
         Map<Long, Set<List<Long>>> solutions = new HashMap<>();
         for(var x: p.rules.keySet()) {
@@ -41,7 +26,6 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
         }
         return solutions;
     }
-
 
     public Map<Long, Set<List<Long>>> initializeEmpty() {
         Map<Long, Set<List<Long>>> solutions = new HashMap<>();
@@ -83,8 +67,6 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
     }
 
     public Map<Long, Set<List<Long>>> semiNaiveEval() {
-//        Map<Long, Set<List<Long>>> solutions = initializeSolutions(p);
-//        Map<Long, Set<List<Long>>> solutions = initializeEmpty();
         Map<Long, Set<List<Long>>> deltaSolutions = initializeEmpty();
         for (var p_i: p.rules.keySet()) {
             deltaSolutions.put(p_i, eval(p, p_i, solutions));
@@ -96,8 +78,6 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
                     solutions.get(e).addAll(temp.get(e));
                 }
         );
-//        solutions = deltaSolutions;
-
 
         boolean done;
         do {
@@ -158,8 +138,6 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
         }
         return sol;
     }
-
-
 
     public static Set<List<Long>> evalRule(Program p, Rule r, Map<Long, Set<List<Long>>> solutions) {
         var satisfyingTuples = join(p, r, solutions);

@@ -269,7 +269,7 @@ public class TrieMap implements Map<Long, SimpleTrie> {
                 var x = it.next();
                 soFar.add(x);
                 SimpleTrie s = innerCombine(atom, rule, soFar);
-                soFar.remove(x);
+                soFar.removeLast();
                 if (s == null) {
                     it.remove();
                     continue;
@@ -328,6 +328,8 @@ public class TrieMap implements Map<Long, SimpleTrie> {
                 constantArr[i] = soFar.get((int) (long) rule.varMap.get(t.value));
             }
         }
+//        System.out.println(Arrays.toString(isConstant));
+//        System.out.println(Arrays.toString(constantArr));
 
 //        TODO: Check that clone is correct for constants.
         return this.cloneForTrie(atom, isConstant, constantArr);

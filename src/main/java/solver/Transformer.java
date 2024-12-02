@@ -7,6 +7,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Transformer {
+//      TODO: Renaming in changeFactsAndRulesToEDGFormat and renamePred could technically cause collisions with already defined names
+//       This is not a problem for the solver, but when outputting in readable form it might be impossible to see which is which. Could be solved by appending `@${atom.pread}` to atoms when printing
 
     public static long changeFactsAndRulesToEDGFormat(Map<Long, List<Atom>> facts, Map<Long, List<Rule>> rules, long counter, Map<Long, String> idToVar) {
         Set<Long> problematicPreds = new HashSet<>(rules.keySet());

@@ -6,4 +6,4 @@ sg_bf(X,X):- sg_m_bf(X),person(X).
 sg_bf(X,Y):-sg_m_bf(X),parent(X,X_1),parent(Y,Y_1),sg_bf(X_1,Y_1).
 sg_m_bf(X_1):-sg_m_bf(X),parent(X,X_1).
 
-?sg_bf(0,X)?
+?-sg_bf(0,X)

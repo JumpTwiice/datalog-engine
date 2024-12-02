@@ -61,7 +61,7 @@ public class TrieSolver implements Solver<SimpleTrie> {
         return solutions;
     }
 
-    // TODO
+    // TODO: Do this smarter
     @Override
     public TrieSolver resetWithProgram(Program p) {
         return new TrieSolver(p);
@@ -109,12 +109,9 @@ public class TrieSolver implements Solver<SimpleTrie> {
     }
 
     public SimpleTrie evalRuleIncremental(Rule r, TrieMap solutions, TrieMap newSolutions) {
-//TODO        var newNewSolutions = solutions.initializeEmptyTrie();
-//        SimpleTrie newNewSolutions = null;
-
-//        var newNewSolutions = new SimpleTrie(-1);
 //        TODO: Should not be over solutions, but rules.
-        var result = solutions.keySet().stream().map(x -> {
+        var result = p.rules.keySet().stream().map(x -> {
+//        var result = solutions.keySet().stream().map(x -> {
 //            TODO: If we want to do it in parallel we need to make a shallow clone of the map.
             var temp = solutions.get(x);
             solutions.put(x, newSolutions.get(x));

@@ -70,8 +70,8 @@ public class Main {
 //        System.exit(0);
 
 //        String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
-//        var is = new FileInputStream(projectPath + "test1.datalog");
-        var is = new FileInputStream(projectPath + "test2.datalog");
+        var is = new FileInputStream(projectPath + "test1.datalog");
+//        var is = new FileInputStream(projectPath + "test2.datalog");
 //        var is = new FileInputStream(projectPath + "test3.datalog");
 //        var is = new FileInputStream(projectPath + "test4.datalog");
 //        var is = new FileInputStream(projectPath + "test5.datalog");
@@ -87,7 +87,7 @@ public class Main {
         System.out.println(p);
 //        System.out.println("IDTOVAR");
 //        System.out.println(p.idToVar);
-        p = Transformer.magicSets(p);
+//        p = Transformer.magicSets(p);
 //        System.out.println(p.idToVar);
         System.out.println(p);
 //        System.out.println(p.rules);

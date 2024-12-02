@@ -29,7 +29,6 @@ public interface Solver<V> {
             }
             var toAdd = p.idToVar.get(id) + " = {";
             if(!out.isEmpty()) {
-                System.out.println(out);
                 toAdd += out.substring(0, out.length() - 2);
             }
             toAdd +=  "}";

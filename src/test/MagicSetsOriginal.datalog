@@ -2,4 +2,4 @@ person(0).person(100).person(1).person(101).person(2).person(102).person(3).pers
 
 samegeneration(X,X):- person(X).
 samegeneration(X,Y):- parent(X,X_1),parent(Y,Y_1),samegeneration(X_1,Y_1).
-?samegeneration(0,X)?
+?-samegeneration(0,X)
