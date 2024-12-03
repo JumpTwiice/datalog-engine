@@ -1,5 +1,6 @@
 package solver;
 
+import ast.Atom;
 import ast.Program;
 
 import java.util.ArrayList;
@@ -27,7 +28,7 @@ public interface Solver<V> {
                 out = new StringBuilder(out.substring(0, out.length() - 1));
                 out.append("), ");
             }
-            var toAdd = p.idToVar.get(id) + " = {";
+            var toAdd = Atom.formatPredicate(id, p) + " = {";
             if(!out.isEmpty()) {
                 toAdd += out.substring(0, out.length() - 2);
             }

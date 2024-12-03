@@ -3,9 +3,8 @@ package solver;
 import ast.Program;
 import ast.Rule;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class TrieSolver implements Solver<SimpleTrie> {
 
@@ -47,14 +46,13 @@ public class TrieSolver implements Solver<SimpleTrie> {
 
         boolean done;
         do {
-//            done = true;
             TrieMap deltaPrimeSolutions = deltaSolutions;
             deltaSolutions = new TrieMap(p);
 
             for (var p_i : p.rules.keySet()) {
                 deltaSolutions.put(p_i, evalIncremental(p_i, solutions, deltaPrimeSolutions));
-//                deltaSolutions.get(p_i);
             }
+            deltaSolutions.removeAll(solutions);
             // Add all new solutions to the old.
             done = !solutions.meld(deltaSolutions);
         } while (!done);
@@ -83,7 +81,7 @@ public class TrieSolver implements Solver<SimpleTrie> {
 //        var sol = new SimpleTrie(p.rules.get(p_i).size());
         var sol = new SimpleTrie(-1);
         for (var r : p.rules.get(p_i)) {
-            sol.meld(evalRule(r, solutions));
+            sol.meld(evalRule(r, r.body.stream().map(x -> solutions.get(x.pred)).toList()));
         }
         if (sol.leaves == null && sol.children == null) {
             return null;
@@ -99,31 +97,56 @@ public class TrieSolver implements Solver<SimpleTrie> {
         return sol;
     }
 
-
-    public SimpleTrie evalRule(Rule r, TrieMap solutions) {
-        var join = join(r, solutions);
+    public SimpleTrie evalRule(Rule r, List<SimpleTrie> relations) {
+        if(relations.stream().anyMatch(Objects::isNull)) {
+            return null;
+        }
+        var join = join(r, relations);
         if (join == null) {
             return null;
         }
         return join.projectTo(r);
     }
 
+
+
+//    public SimpleTrie evalRule(Rule r, TrieMap solutions) {
+//        if(r.body.stream().anyMatch(x -> solutions.get(x.pred) == null)) {
+//            return null;
+//        }
+//        var join = join(r, solutions);
+//        if (join == null) {
+//            return null;
+//        }
+//        return join.projectTo(r);
+//    }
+
     public SimpleTrie evalRuleIncremental(Rule r, TrieMap solutions, TrieMap newSolutions) {
-//        TODO: Should not be over solutions, but rules.
-        var result = p.rules.keySet().stream().map(x -> {
-//        var result = solutions.keySet().stream().map(x -> {
-//            TODO: If we want to do it in parallel we need to make a shallow clone of the map.
-            var temp = solutions.get(x);
-            solutions.put(x, newSolutions.get(x));
-            var res = evalRule(r, solutions);
-            solutions.put(x, temp);
-            return res;
-        }).reduce(null, solutions::meldSimpleTries);
+        SimpleTrie result = null;
+        var sols = r.body.stream().map(x -> solutions.get(x.pred)).collect(Collectors.toCollection(ArrayList::new));
+        for(var i = 0; i < sols.size(); i++) {
+            var atomID = r.body.get(i).pred;
+            sols.set(i, newSolutions.get(atomID));
+//            solutions.put(x, newSolutions.get(x));
+//            var res = evalRule(r, sols);
+            result = solutions.meldSimpleTries(result, evalRule(r, sols));
+            sols.set(i, solutions.get(atomID));
+        }
+//        var result = meaningFullRelations.stream().map(x -> {
+////        var result = p.rules.keySet().stream().map(x -> {
+////        var result = solutions.keySet().stream().map(x -> {
+////            TODO: If we want to do it in parallel we need to make a shallow clone of the map.
+//            var temp = sols.get(x);
+//            solutions.put(x, newSolutions.get(x));
+//            var res = evalRule(r, solutions);
+//            solutions.put(x, temp);
+//            return res;
+//        }).reduce(null, solutions::meldSimpleTries);
 
         return result;
     }
 
-    public SimpleTrie join(Rule r, TrieMap solutions) {
+    public SimpleTrie join(Rule r, List<SimpleTrie> solutions) {
         return generateConstraints(r, solutions, r.body.size() - 1);
     }
 
@@ -135,19 +158,47 @@ public class TrieSolver implements Solver<SimpleTrie> {
      * @param i
      * @return
      */
-    public SimpleTrie generateConstraints(Rule r, TrieMap solutions, int i) {
+    public SimpleTrie generateConstraints(Rule r, List<SimpleTrie> solutions, int i) {
         var atom = r.body.get(i);
         var boolConst = atom.getBoolAndConstArr();
         var constBool = boolConst.x();
         var constArr = boolConst.y();
         if (i == 0) {
-            var source = solutions.get(r.body.getFirst().pred);
+            var source = solutions.getFirst();
             if (source == null) {
                 return null;
             }
-            return solutions.cloneForTrie(r.body.getFirst(), constBool, constArr);
+            return TrieMap.cloneForTrie(source, constBool, constArr);
         }
         var prev = generateConstraints(r, solutions, i - 1);
-        return solutions.combine(prev, r.body.get(i), r);
+        return TrieMap.combine(prev, r.body.get(i), solutions.get(i), r);
     }
+
+//    public SimpleTrie join(Rule r, TrieMap solutions) {
+//        return generateConstraints(r, solutions, r.body.size() - 1);
+//    }
+
+    /**
+     * Recursively builds the trie for the rule.
+     *
+     * @param r
+     * @param solutions
+     * @param i
+     * @return
+     */
+//    public SimpleTrie generateConstraints(Rule r, TrieMap solutions, int i) {
+//        var atom = r.body.get(i);
+//        var boolConst = atom.getBoolAndConstArr();
+//        var constBool = boolConst.x();
+//        var constArr = boolConst.y();
+//        if (i == 0) {
+//            var source = solutions.get(r.body.getFirst().pred);
+//            if (source == null) {
+//                return null;
+//            }
+//            return solutions.cloneForTrie(r.body.getFirst(), constBool, constArr);
+//        }
+//        var prev = generateConstraints(r, solutions, i - 1);
+//        return solutions.combine(prev, r.body.get(i), r);
+//    }
 }

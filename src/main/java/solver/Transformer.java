@@ -191,7 +191,6 @@ public class Transformer {
             queryPred = bodyMagicMap.get(queryAtom.isBoundArray);
         }
         var newQuery = new Atom(queryPred, queryAtom.ids);
-
         return new Program(newFacts, newRules, newQuery, idToVar, idCounter);
     }
 

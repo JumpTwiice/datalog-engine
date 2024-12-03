@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 public class Util {
     public static Graph graphFromProgram(Program p) throws Exception {
         int n = (int)p.nextPred;
-        Graph graph = new Graph(n-1);
+        Graph graph = new Graph(n);
         for (var i: p.rules.keySet()) {
             var rules = p.rules.get(i);
             if (rules == null) continue;

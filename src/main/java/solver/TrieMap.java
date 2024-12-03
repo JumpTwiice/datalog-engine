@@ -96,6 +96,23 @@ public class TrieMap implements Map<Long, SimpleTrie> {
         return res;
     }
 
+    public void removeAll(TrieMap s) {
+        for (var x : s.map.keySet()) {
+            var source = s.map.get(x);
+            if (source == null) {
+                continue;
+            }
+            var destination = map.get(x);
+            if (destination == null) {
+                continue;
+            }
+            destination.removeAll(source);
+            if(destination.children == null && destination.leaves == null) {
+                map.remove(x);
+            }
+        }
+    }
+
     /**
      * Melds <code>this</code> with <code>s</code> possibly stealing references from <code>s</code>.
      * Destructive for <code>this</code>
@@ -145,6 +162,23 @@ public class TrieMap implements Map<Long, SimpleTrie> {
      * <code>isConstant=[true,false,false]</code> and <code>constantArr[42,0,0]</code> will copy the
      * source trie, but only the path that starts with 42
      *
+     * @param isConstant  Describes which of the values in the source trie that are constants.
+     *                    Must have constants described by <code>constantArr</code>
+     * @param constantArr Describes the values in the source trie that are constants
+     * @return A clone of the source trie under the restrictions posed by <code>isConstant</code> and
+     * <code>constantArr</code>. If nothing satisfies the requirements it returns null. If it is satisfiable,
+     * but everything is constants, a {@link SimpleTrie} with <code>leaves=children=null</code> is returned
+     */
+    public static SimpleTrie cloneForTrie(SimpleTrie source, boolean[] isConstant, long[] constantArr) {
+        return getAll(source, 0, isConstant, constantArr);
+    }
+
+
+    /**
+     * Clones the {@link SimpleTrie} associated with <code>a</code>. The result is a deep clone. Example:
+     * <code>isConstant=[true,false,false]</code> and <code>constantArr[42,0,0]</code> will copy the
+     * source trie, but only the path that starts with 42
+     *
      * @param a           {@link Atom} describing the source trie
      * @param isConstant  Describes which of the values in the source trie that are constants.
      *                    Must have constants described by <code>constantArr</code>
@@ -154,7 +188,7 @@ public class TrieMap implements Map<Long, SimpleTrie> {
      * but everything is constants, a {@link SimpleTrie} with <code>leaves=children=null</code> is returned
      */
     public SimpleTrie cloneForTrie(Atom a, boolean[] isConstant, long[] constantArr) {
-        return getAll(a, map.get(a.pred), 0, isConstant, constantArr);
+        return getAll(map.get(a.pred), 0, isConstant, constantArr);
     }
 
     /**
@@ -163,18 +197,17 @@ public class TrieMap implements Map<Long, SimpleTrie> {
      * If it is satisfiable, but everything is constants, a {@link SimpleTrie} with <code>leaves=children=null</code> is returned
      * Clones <code>from</code> to the returned {@link SimpleTrie}. If the returned value is <code>null</code> it means empty.
      *
-     * @param a
      * @param from
      * @param index
      * @param isConstant
      * @param constantArr
      * @return
      */
-    private SimpleTrie getAll(Atom a, SimpleTrie from, int index, boolean[] isConstant, long[] constantArr) {
+    private static SimpleTrie getAll(SimpleTrie from, int index, boolean[] isConstant, long[] constantArr) {
         if (from == null) {
             return null;
         }
-        if (index == a.ids.size() - 1) {
+        if (index == isConstant.length - 1) {
             if (isConstant[index]) {
                 if (from.leaves.contains(constantArr[index])) {
                     return new SimpleTrie(-1);
@@ -191,13 +224,13 @@ public class TrieMap implements Map<Long, SimpleTrie> {
             }
         }
         if (isConstant[index]) {
-            return getAll(a, from.children.get(constantArr[index]), index + 1, isConstant, constantArr);
+            return getAll(from.children.get(constantArr[index]), index + 1, isConstant, constantArr);
         }
 
         var maybeChildren = new HashMap<Long, SimpleTrie>();
         var maybeLeaves = new HashSet<Long>();
         for (var x : from.children.keySet()) {
-            var child = getAll(a, from.children.get(x), index + 1, isConstant, constantArr);
+            var child = getAll(from.children.get(x), index + 1, isConstant, constantArr);
 //            Assuming the construction of everything else is without error this check is not necessary.
             if (child == null) {
                 continue;
@@ -232,7 +265,7 @@ public class TrieMap implements Map<Long, SimpleTrie> {
      * @param rule
      * @return a new {@link SimpleTrie} combining <code>atom</code> with <code>old</code>
      */
-    public SimpleTrie combine(SimpleTrie old, Atom atom, Rule rule) {
+    public static SimpleTrie combine(SimpleTrie old, Atom atom, SimpleTrie atomSolution, Rule rule) {
 //        If the previous conditions are not satisfiable adding more cannot help
         if (old == null) {
             return null;
@@ -242,9 +275,9 @@ public class TrieMap implements Map<Long, SimpleTrie> {
             var boolConst = atom.getBoolAndConstArr();
             var constBool = boolConst.x();
             var constArr = boolConst.y();
-            return cloneForTrie(atom, constBool, constArr);
+            return cloneForTrie(atomSolution, constBool, constArr);
         }
-        return outerCombine(old, atom, rule, 0, new ArrayList<>());
+        return outerCombine(old, atom, atomSolution, rule, 0, new ArrayList<>());
     }
 
     /**
@@ -257,7 +290,7 @@ public class TrieMap implements Map<Long, SimpleTrie> {
      * @param index
      * @param soFar
      */
-    private SimpleTrie outerCombine(SimpleTrie old, Atom atom, Rule rule, int index, List<Long> soFar) {
+    private static SimpleTrie outerCombine(SimpleTrie old, Atom atom, SimpleTrie atomSolution, Rule rule, int index, List<Long> soFar) {
         if (old.leaves != null) {
 //        if (index == atom.ids.size() - 1) {
 //            Iterate over the leaves and get the solutions associated with 'atom'
@@ -268,7 +301,7 @@ public class TrieMap implements Map<Long, SimpleTrie> {
             while (it.hasNext()) {
                 var x = it.next();
                 soFar.add(x);
-                SimpleTrie s = innerCombine(atom, rule, soFar);
+                SimpleTrie s = innerCombine(atom, atomSolution, rule, soFar);
                 soFar.removeLast();
                 if (s == null) {
                     it.remove();
@@ -296,7 +329,7 @@ public class TrieMap implements Map<Long, SimpleTrie> {
         for (var x : old.children.keySet()) {
             soFar.add(x);
             var child = old.children.get(x);
-            var newChild = outerCombine(child, atom, rule, index + 1, soFar);
+            var newChild = outerCombine(child, atom, atomSolution, rule, index + 1, soFar);
             if (newChild != null) {
                 newChildren.put(x, newChild);
             }
@@ -315,7 +348,7 @@ public class TrieMap implements Map<Long, SimpleTrie> {
      * @param soFar
      * @return
      */
-    private SimpleTrie innerCombine(Atom atom, Rule rule, List<Long> soFar) {
+    private static SimpleTrie innerCombine(Atom atom, SimpleTrie atomSolution, Rule rule, List<Long> soFar) {
         boolean[] isConstant = new boolean[atom.ids.size()];
         long[] constantArr = new long[atom.ids.size()];
         for (int i = 0; i < isConstant.length; i++) {
@@ -328,11 +361,8 @@ public class TrieMap implements Map<Long, SimpleTrie> {
                 constantArr[i] = soFar.get((int) (long) rule.varMap.get(t.value));
             }
         }
-//        System.out.println(Arrays.toString(isConstant));
-//        System.out.println(Arrays.toString(constantArr));
-
 //        TODO: Check that clone is correct for constants.
-        return this.cloneForTrie(atom, isConstant, constantArr);
+        return cloneForTrie(atomSolution, isConstant, constantArr);
     }
 
     public Set<List<Long>> toStandardFormat(SimpleTrie s) {

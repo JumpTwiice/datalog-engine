@@ -130,6 +130,36 @@ public class SimpleTrie {
         return true;
     }
 
+    public void removeAll(SimpleTrie source) {
+        if (source == null) {
+            return;
+        }
+
+        if (leaves != null) {
+            leaves.removeAll(source.leaves);
+            if(leaves.isEmpty()) {
+                leaves = null;
+            }
+        }
+        if(source.children == null || children == null) {
+            return;
+        }
+
+//        TODO: Looping through this might be more efficient
+        for (var c : source.children.keySet()) {
+//                TODO: Make safe for concurrency
+            if (children.containsKey(c)) {
+                children.get(c).removeAll(source.children.get(c));
+                if(children.get(c).children == null && children.get(c).leaves == null) {
+                    children.remove(c);
+                }
+            }
+        }
+        if(children.isEmpty()) {
+            children = null;
+        }
+    }
+
 
     /**
      * Melds <code>this</code> with <code>source</code> potentially taking references
@@ -170,7 +200,6 @@ public class SimpleTrie {
             }
         }
         return change;
-
     }
 
     /**

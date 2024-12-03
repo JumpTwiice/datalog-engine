@@ -15,17 +15,14 @@ public class AdornedAtom extends Atom {
         this.isMagic = magic;
     }
 
-    // TODO: ^ is technically not a legal identifier. Printing the program therefore yields an illegal program
     public String generatePred(Program p) {
         String magicPart = isMagic ? "_m" : "";
-        String adornmentPar = isBoundArray == null ? "": isBoundArray.stream().map(b -> b ? "b" : "f").reduce("^", String::concat);
+        String adornmentPar = isBoundArray == null ? "": isBoundArray.stream().map(b -> b ? "b" : "f").reduce("_", String::concat);
         return p.idToVar.get(pred) + adornmentPar + magicPart;
     }
 
 
     public String toString(Program p) {
-        String magicPart = isMagic ? "_m" : "";
-        String adornmentPar = isBoundArray == null ? "": isBoundArray.stream().map(b -> b ? "b" : "f").reduce("^", String::concat);
-        return p.idToVar.get(pred) + adornmentPar + magicPart + '(' + super.idsToString() + ')';
+        return generatePred(p)+ '(' + super.idsToString() + ')';
     }
 }

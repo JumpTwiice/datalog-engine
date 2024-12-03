@@ -25,7 +25,7 @@ PARSER_END(Parser)
   | < DASH : "-" >
   | < IMPLIED_BY : ":-" >
   | < VAR_IDENTIFIER : ["A"-"Z"] (<LETTER> | <DIGIT> | "_")* >
-  | < PRED_IDENTIFIER : ["a"-"z"] (<LETTER> | <DIGIT> | "_")* >
+  | < PRED_IDENTIFIER : ["a"-"z"] (<LETTER> | <DIGIT> | "_" | "@")* >
   | < INTEGER_LITERAL : (<DIGIT>)+ >
 }
 
