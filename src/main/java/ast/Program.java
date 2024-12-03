@@ -18,10 +18,10 @@ public class Program {
         this.idToVar = idToVar;
     }
 
-    public void setupPositionsForRules() {
+    public void setupForTrieSolver() {
         for(var ruleSet: rules.values()) {
             for(var r: ruleSet) {
-                r.setupPositions();
+                r.setupForTrieSolver();
             }
         }
     }

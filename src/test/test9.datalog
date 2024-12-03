@@ -1,0 +1,4 @@
+edge(1,1). edge(2,2).
+
+reach(X,Y) :- edge(X,X), edge(Y,Y).
+?-reachable(X,1)

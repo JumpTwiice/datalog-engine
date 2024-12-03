@@ -80,13 +80,14 @@ public class Main {
 
 //        String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
 //        var is = new FileInputStream(projectPath + "test1.datalog");
-        var is = new FileInputStream(projectPath + "test2.datalog");
+//        var is = new FileInputStream(projectPath + "test2.datalog");
 //        var is = new FileInputStream(projectPath + "test3.datalog");
 //        var is = new FileInputStream(projectPath + "test4.datalog");
 //        var is = new FileInputStream(projectPath + "test5.datalog");
 //        var is = new FileInputStream(projectPath + "test6.datalog");
 //        var is = new FileInputStream(projectPath + "test7.datalog");
 //        var is = new FileInputStream(projectPath + "test8.datalog");
+        var is = new FileInputStream(projectPath + "test9.datalog");
 //        var is = new FileInputStream(projectPath + "MagicSetsOriginal.datalog");
 //        var is = new FileInputStream(projectPath + "MagicSetsMagic.datalog");
 //        "src/test/test1.datalog"
@@ -97,13 +98,13 @@ public class Main {
 //        p = Transformer.magicSets(p);
         System.out.println(p);
 
-        p.setupPositionsForRules();
+        p.setupForTrieSolver();
 //        Transformer.setEqSet(p);
 //        Checker.checkProgram(p);
 //        var solver = new SCCSolverDecorator<>(p, new SimpleSolver(p));
-        var solver = new SCCSolverDecorator<>(p, new TrieSolver(p)); // Does not work atm
+//        var solver = new SCCSolverDecorator<>(p, new TrieSolver(p)); // Does not work atm
 //        var solver = new TrieSolver(p);
-//        var solver = new SimpleSolver(p);
+        var solver = new SimpleSolver(p);
 //        var x = solver.naiveEval();
         var x = solver.semiNaiveEval();
 //        System.out.println(x.map);
@@ -136,7 +137,7 @@ public class Main {
                 () -> {
                     try {
                         runUntillTimeOut(x -> {
-                            x.setupPositionsForRules();
+                            x.setupForTrieSolver();
                             new TrieSolver(x).naiveEval();
                         }, "TrieSolver, naive");
                     } catch (Exception e) {
@@ -159,7 +160,7 @@ public class Main {
                 () -> {
                     try {
                         runUntillTimeOut(x -> {
-                            x.setupPositionsForRules();
+                            x.setupForTrieSolver();
                             new TrieSolver(x).semiNaiveEval();
                         }, "TrieSolver, semi");
                     } catch (Exception e) {
@@ -216,7 +217,7 @@ public class Main {
             var parser = new Parser(is);
             var p = parser.parse();
             p = Transformer.magicSets(p);
-            p.setupPositionsForRules();
+            p.setupForTrieSolver();
             var solver = new TrieSolver(p);
             solver.semiNaiveEval();
             solver.solutionsToPredMap();

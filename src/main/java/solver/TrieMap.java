@@ -169,8 +169,8 @@ public class TrieMap implements Map<Long, SimpleTrie> {
      * <code>constantArr</code>. If nothing satisfies the requirements it returns null. If it is satisfiable,
      * but everything is constants, a {@link SimpleTrie} with <code>leaves=children=null</code> is returned
      */
-    public static SimpleTrie cloneForTrie(SimpleTrie source, boolean[] isConstant, long[] constantArr) {
-        return getAll(source, 0, isConstant, constantArr);
+    public static SimpleTrie cloneForTrie(SimpleTrie source, boolean[] isConstant, long[] constantArr, int[][] sameArr) {
+        return getAll(source, 0, isConstant, constantArr, sameArr);
     }
 
 
@@ -187,8 +187,8 @@ public class TrieMap implements Map<Long, SimpleTrie> {
      * <code>constantArr</code>. If nothing satisfies the requirements it returns null. If it is satisfiable,
      * but everything is constants, a {@link SimpleTrie} with <code>leaves=children=null</code> is returned
      */
-    public SimpleTrie cloneForTrie(Atom a, boolean[] isConstant, long[] constantArr) {
-        return getAll(map.get(a.pred), 0, isConstant, constantArr);
+    public SimpleTrie cloneForTrie(Atom a, boolean[] isConstant, long[] constantArr, int[][] sameArr) {
+        return getAll(map.get(a.pred), 0, isConstant, constantArr, sameArr);
     }
 
     /**
@@ -203,7 +203,7 @@ public class TrieMap implements Map<Long, SimpleTrie> {
      * @param constantArr
      * @return
      */
-    private static SimpleTrie getAll(SimpleTrie from, int index, boolean[] isConstant, long[] constantArr) {
+    private static SimpleTrie getAll(SimpleTrie from, int index, boolean[] isConstant, long[] constantArr, int[][] sameArr) {
         if (from == null) {
             return null;
         }
@@ -224,13 +224,19 @@ public class TrieMap implements Map<Long, SimpleTrie> {
             }
         }
         if (isConstant[index]) {
-            return getAll(from.children.get(constantArr[index]), index + 1, isConstant, constantArr);
+            return getAll(from.children.get(constantArr[index]), index + 1, isConstant, constantArr, sameArr);
         }
 
         var maybeChildren = new HashMap<Long, SimpleTrie>();
         var maybeLeaves = new HashSet<Long>();
         for (var x : from.children.keySet()) {
-            var child = getAll(from.children.get(x), index + 1, isConstant, constantArr);
+//            If we have a requirement that the same variable must occur later on bind it.
+            if(sameArr != null && sameArr[index] != null) {
+                for(var i = 0; i < sameArr[index].length; i++) {
+                    constantArr[i] = x;
+                }
+            }
+            var child = getAll(from.children.get(x), index + 1, isConstant, constantArr, sameArr);
 //            Assuming the construction of everything else is without error this check is not necessary.
             if (child == null) {
                 continue;
@@ -272,10 +278,7 @@ public class TrieMap implements Map<Long, SimpleTrie> {
         }
 //        If there were no variables so far we just return the matches for the next atom
         if (old.children == null && old.leaves == null) {
-            var boolConst = atom.getBoolAndConstArr();
-            var constBool = boolConst.x();
-            var constArr = boolConst.y();
-            return cloneForTrie(atomSolution, constBool, constArr);
+            return cloneForTrie(atomSolution, atom.constBool, atom.constArr, atom.sameNess);
         }
         return outerCombine(old, atom, atomSolution, rule, 0, new ArrayList<>());
     }
@@ -349,20 +352,23 @@ public class TrieMap implements Map<Long, SimpleTrie> {
      * @return
      */
     private static SimpleTrie innerCombine(Atom atom, SimpleTrie atomSolution, Rule rule, List<Long> soFar) {
-        boolean[] isConstant = new boolean[atom.ids.size()];
-        long[] constantArr = new long[atom.ids.size()];
-        for (int i = 0; i < isConstant.length; i++) {
-            var t = atom.ids.get(i);
-            if (!t.isVar) {
-                isConstant[i] = true;
-                constantArr[i] = t.value;
-            } else if ((soFar.size() > rule.varMap.get(t.value))) {
-                isConstant[i] = true;
-                constantArr[i] = soFar.get((int) (long) rule.varMap.get(t.value));
-            }
-        }
-//        TODO: Check that clone is correct for constants.
-        return cloneForTrie(atomSolution, isConstant, constantArr);
+        var isConstant = atom.constBool;
+        var constantArr = atom.constArr;
+        var sameArr = atom.sameNess;
+//        boolean[] isConstant = new boolean[atom.ids.size()];
+//        long[] constantArr = new long[atom.ids.size()];
+//        for (int i = 0; i < isConstant.length; i++) {
+//            var t = atom.ids.get(i);
+//            if (!t.isVar) {
+//                isConstant[i] = true;
+//                constantArr[i] = t.value;
+//            } else if ((soFar.size() > rule.varMap.get(t.value))) {
+//                isConstant[i] = true;
+//                constantArr[i] = soFar.get((int) (long) rule.varMap.get(t.value));
+//            }
+//        }
+////        TODO: Check that clone is correct for constants.
+        return cloneForTrie(atomSolution, isConstant, constantArr, sameArr);
     }
 
     public Set<List<Long>> toStandardFormat(SimpleTrie s) {

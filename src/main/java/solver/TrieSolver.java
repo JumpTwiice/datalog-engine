@@ -160,15 +160,15 @@ public class TrieSolver implements Solver<SimpleTrie> {
      */
     public SimpleTrie generateConstraints(Rule r, List<SimpleTrie> solutions, int i) {
         var atom = r.body.get(i);
-        var boolConst = atom.getBoolAndConstArr();
-        var constBool = boolConst.x();
-        var constArr = boolConst.y();
+        var constBool = atom.constBool;
+        var constArr = atom.constArr;
+        var sameArr = atom.sameNess;
         if (i == 0) {
             var source = solutions.getFirst();
             if (source == null) {
                 return null;
             }
-            return TrieMap.cloneForTrie(source, constBool, constArr);
+            return TrieMap.cloneForTrie(source, constBool, constArr, sameArr);
         }
         var prev = generateConstraints(r, solutions, i - 1);
         return TrieMap.combine(prev, r.body.get(i), solutions.get(i), r);
