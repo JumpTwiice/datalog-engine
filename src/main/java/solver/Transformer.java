@@ -118,7 +118,7 @@ public class Transformer {
         }
         var queryMagic = magic((AdornedAtom) adornedProgram.query);
         Program newProgram = new Program(p.facts, ruleMap, adornedProgram.query, adornedProgram.idToVar, adornedProgram.nextPred);
-        Transformer.changeFactsAndRulesToEDGFormat(newProgram);
+//        changeFactsAndRulesToEDGFormat(newProgram);
         var renamed = renamePred(newProgram, queryMagic);
         changeFactsAndRulesToEDGFormat(renamed);
         return renamed;

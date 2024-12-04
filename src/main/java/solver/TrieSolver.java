@@ -101,10 +101,17 @@ public class TrieSolver implements Solver<SimpleTrie> {
         if(relations.stream().anyMatch(Objects::isNull)) {
             return null;
         }
+//        System.out.println("JOINING");
+//        System.out.println(relations);
+//        System.out.println(r.toString(p));
         var join = join(r, relations);
+//        System.out.println("JOIN");
+//        System.out.println(join);
         if (join == null) {
             return null;
         }
+//        System.out.println("PROJECTION");
+//        System.out.println(join.projectTo(r));
         return join.projectTo(r);
     }
 
@@ -171,6 +178,7 @@ public class TrieSolver implements Solver<SimpleTrie> {
             return TrieMap.cloneForTrie(source, constBool, constArr, sameArr);
         }
         var prev = generateConstraints(r, solutions, i - 1);
+//        System.out.println(prev);
         return TrieMap.combine(prev, r.body.get(i), solutions.get(i), r);
     }
 

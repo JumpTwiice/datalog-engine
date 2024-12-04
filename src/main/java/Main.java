@@ -71,6 +71,11 @@ public class Main {
     public static String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
 
     public static void main(String[] args) throws Exception {
+        Testing.runRandomTests(1000);
+        System.exit(0);
+
+
+
 //        runAllTests();
 //        System.exit(0);
 //        TODO: Bug when a variable occurs for the first time and multiple times in an atom.
@@ -87,7 +92,8 @@ public class Main {
 //        var is = new FileInputStream(projectPath + "test6.datalog");
 //        var is = new FileInputStream(projectPath + "test7.datalog");
 //        var is = new FileInputStream(projectPath + "test8.datalog");
-        var is = new FileInputStream(projectPath + "test9.datalog");
+//        var is = new FileInputStream(projectPath + "test9.datalog");
+        var is = new FileInputStream(projectPath + "test10.datalog");
 //        var is = new FileInputStream(projectPath + "MagicSetsOriginal.datalog");
 //        var is = new FileInputStream(projectPath + "MagicSetsMagic.datalog");
 //        "src/test/test1.datalog"
@@ -103,8 +109,8 @@ public class Main {
 //        Checker.checkProgram(p);
 //        var solver = new SCCSolverDecorator<>(p, new SimpleSolver(p));
 //        var solver = new SCCSolverDecorator<>(p, new TrieSolver(p)); // Does not work atm
-//        var solver = new TrieSolver(p);
-        var solver = new SimpleSolver(p);
+        var solver = new TrieSolver(p);
+//        var solver = new SimpleSolver(p);
 //        var x = solver.naiveEval();
         var x = solver.semiNaiveEval();
 //        System.out.println(x.map);

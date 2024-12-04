@@ -222,7 +222,7 @@ public class SimpleTrie {
         if (list.size() - index == 1) {
             leaves.add(list.getLast());
         } else {
-            var child = children.computeIfAbsent(list.get(index), x -> new SimpleTrie(list.size() - 1));
+            var child = children.computeIfAbsent(list.get(index), x -> new SimpleTrie(list.size() - index - 1));
             child.addWithIndex(list, index + 1);
         }
     }
@@ -244,7 +244,7 @@ public class SimpleTrie {
             leaves.add(list[list.length - 1]);
         } else {
             initializeChildrenIfNull();
-            var child = children.computeIfAbsent(list[index], x -> new SimpleTrie(list.length - 1));
+            var child = children.computeIfAbsent(list[index], x -> new SimpleTrie(list.length - index - 1));
             child.addWithIndex(list, index + 1);
         }
     }
@@ -300,8 +300,13 @@ public class SimpleTrie {
      */
 //    Slow. Only use on unordered. TODO: Implement fast on ordered.
     private void projectTo(int index, SimpleTrie result, int[][] positions, long[] temp) {
+//        System.out.println(result);
+//        System.out.println(index);
         if (index == positions.length) {
+//            System.out.println("CHANGING SOON");
+//            System.out.println(result);
             result.add(temp);
+//            System.out.println(result);
             return;
         }
         if (index == positions.length - 1) {
@@ -320,9 +325,9 @@ public class SimpleTrie {
         }
 
         if (positions[index] != null) {
-            if (result.children == null) {
-                result.initializeChildrenIfNull();
-            }
+//            if (result.children == null) {
+//                result.initializeChildrenIfNull();
+//            }
             for (var x : children.keySet()) {
                 var callWith = temp.clone();
                 for (int i = 0; i < positions[index].length; i++) {

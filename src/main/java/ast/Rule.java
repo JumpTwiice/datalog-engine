@@ -77,9 +77,9 @@ public class Rule {
                     isConstant[i] = true;
                     continue;
                 }
-                if(!variablesSeenInBody.contains(t.value)) {
-                    isConstant[i] = false;
-                    variablesSeenInBody.add(t.value);
+//                if(variablesSeenInBody.contains(t.value)) {
+//                    isConstant[i] = true;
+//                    variablesSeenInBody.add(t.value);
                     if(idToFirstPos.containsKey(t.value)) {
                         var list = posToWriteList.computeIfAbsent(t.value, x -> new ArrayList<>());
                         list.add(i);
@@ -89,7 +89,10 @@ public class Rule {
                     }
                     continue;
 //                    constantArr[i] = soFar.get((int) (long) rule.varMap.get(t.value));
-                }
+//                } else {
+//                    variablesSeenInBody.add(t.value);
+//                    isConstant[i] = false;
+//                }
             }
             posToWriteList.forEach((key, val) -> {
                 sameArr[idToFirstPos.get(key)] = val.stream().mapToInt(x -> x).toArray();
@@ -99,7 +102,8 @@ public class Rule {
             atom.sameNess = sameArr;
             atom.constArr = constantArr;
 
-            variablesFromOtherAtoms.addAll(variablesSeenInBody);
+//            variablesFromOtherAtoms.addAll(variablesSeenInBody);
+            variablesFromOtherAtoms.addAll(idToFirstPos.keySet());
         }
     }
 

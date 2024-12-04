@@ -17,7 +17,9 @@ public class TrieMap implements Map<Long, SimpleTrie> {
         map = new HashMap<>();
         this.p = p;
         for (var id : p.facts.keySet()) {
-            map.put(id, SimpleTrie.trieFrom(p.facts.get(id)));
+            if(!p.facts.get(id).isEmpty()) {
+                map.put(id, SimpleTrie.trieFrom(p.facts.get(id)));
+            }
         }
     }
 
@@ -233,7 +235,7 @@ public class TrieMap implements Map<Long, SimpleTrie> {
 //            If we have a requirement that the same variable must occur later on bind it.
             if(sameArr != null && sameArr[index] != null) {
                 for(var i = 0; i < sameArr[index].length; i++) {
-                    constantArr[i] = x;
+                    constantArr[sameArr[index][i]] = x;
                 }
             }
             var child = getAll(from.children.get(x), index + 1, isConstant, constantArr, sameArr);
