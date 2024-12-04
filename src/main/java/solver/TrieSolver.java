@@ -20,6 +20,7 @@ public class TrieSolver implements Solver<SimpleTrie> {
 //        TrieMap solutions = new TrieMap(p);
         boolean done;
         do {
+//            System.out.println("ITERATING");
             TrieMap newSolutions = new TrieMap(p);
             for (var p_i : p.rules.keySet()) {
                 newSolutions.put(p_i, eval(p_i, solutions));
@@ -178,7 +179,6 @@ public class TrieSolver implements Solver<SimpleTrie> {
             return TrieMap.cloneForTrie(source, constBool, constArr, sameArr);
         }
         var prev = generateConstraints(r, solutions, i - 1);
-//        System.out.println(prev);
         return TrieMap.combine(prev, r.body.get(i), solutions.get(i), r);
     }
 

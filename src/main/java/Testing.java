@@ -45,29 +45,6 @@ public class Testing {
         return result.toString();
     }
 
-    private static StringBuilder makeQuery(Random rand, int predNumber, int[] predArities) {
-        var res = new StringBuilder();
-
-        for(var i = 0; i < predNumber; i++) {
-            if(factProbability < rand.nextDouble()) {
-                continue;
-            }
-            var factNum =  rand.nextInt(minFacts, maxFacts);
-            for(var j = 0; j < factNum; j++) {
-                res.append('p').append(i).append('(');
-                for(var k = 0; k < predArities[i]; k++) {
-                    res.append(rand.nextInt(1, maxHerbrand - minHerbrand + 2));
-                    if(k != predArities[i] - 1) {
-                        res.append(',');
-                    }
-                }
-                res.append(')').append('.');
-            }
-            res.append('\n');
-        }
-        return res;
-    }
-
     private static StringBuilder makeFacts(Random rand, int predNumber, int[] predArities) {
         var res = new StringBuilder();
         for(var i = 0; i < predNumber; i++) {
@@ -145,6 +122,7 @@ public class Testing {
         for(var i = 1; i < solutions.size(); i++) {
             var prev = solutions.get(i-1);
             var cur = solutions.get(i);
+//            NOT WORKING
             assert(prev.equals(cur));
         }
     }

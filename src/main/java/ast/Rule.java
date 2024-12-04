@@ -74,7 +74,7 @@ public class Rule {
                     continue;
                 }
                 if(variablesFromOtherAtoms.contains(t.value)) {
-                    isConstant[i] = true;
+                    isConstant[i] = false;
                     continue;
                 }
 //                if(variablesSeenInBody.contains(t.value)) {

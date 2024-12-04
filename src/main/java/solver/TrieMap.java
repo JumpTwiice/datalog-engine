@@ -359,16 +359,16 @@ public class TrieMap implements Map<Long, SimpleTrie> {
         var sameArr = atom.sameNess;
 //        boolean[] isConstant = new boolean[atom.ids.size()];
 //        long[] constantArr = new long[atom.ids.size()];
-//        for (int i = 0; i < isConstant.length; i++) {
-//            var t = atom.ids.get(i);
-//            if (!t.isVar) {
-//                isConstant[i] = true;
-//                constantArr[i] = t.value;
-//            } else if ((soFar.size() > rule.varMap.get(t.value))) {
-//                isConstant[i] = true;
-//                constantArr[i] = soFar.get((int) (long) rule.varMap.get(t.value));
-//            }
-//        }
+        for (int i = 0; i < isConstant.length; i++) {
+            var t = atom.ids.get(i);
+            if (!t.isVar) {
+                continue;
+            }
+            if ((soFar.size() > rule.varMap.get(t.value))) {
+                isConstant[i] = true;
+                constantArr[i] = soFar.get((int) (long) rule.varMap.get(t.value));
+            }
+        }
 ////        TODO: Check that clone is correct for constants.
         return cloneForTrie(atomSolution, isConstant, constantArr, sameArr);
     }

@@ -85,7 +85,7 @@ public class Main {
 
 //        String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
 //        var is = new FileInputStream(projectPath + "test1.datalog");
-//        var is = new FileInputStream(projectPath + "test2.datalog");
+        var is = new FileInputStream(projectPath + "test2.datalog");
 //        var is = new FileInputStream(projectPath + "test3.datalog");
 //        var is = new FileInputStream(projectPath + "test4.datalog");
 //        var is = new FileInputStream(projectPath + "test5.datalog");
@@ -93,7 +93,7 @@ public class Main {
 //        var is = new FileInputStream(projectPath + "test7.datalog");
 //        var is = new FileInputStream(projectPath + "test8.datalog");
 //        var is = new FileInputStream(projectPath + "test9.datalog");
-        var is = new FileInputStream(projectPath + "test10.datalog");
+//        var is = new FileInputStream(projectPath + "test10.datalog");
 //        var is = new FileInputStream(projectPath + "MagicSetsOriginal.datalog");
 //        var is = new FileInputStream(projectPath + "MagicSetsMagic.datalog");
 //        "src/test/test1.datalog"
