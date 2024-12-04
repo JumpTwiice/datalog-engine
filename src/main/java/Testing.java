@@ -122,8 +122,10 @@ public class Testing {
         for(var i = 1; i < solutions.size(); i++) {
             var prev = solutions.get(i-1);
             var cur = solutions.get(i);
-//            NOT WORKING
-            assert(prev.equals(cur));
+            assert(prev.keySet().equals(cur.keySet()));
+            for(var k: prev.keySet()) {
+                assert(prev.get(k).equals(cur.get(k)));
+            }
         }
     }
 

@@ -37,11 +37,13 @@ public class TrieMap implements Map<Long, SimpleTrie> {
 
     public Map<Long, Set<List<Long>>> solutionsToPredMap() {
         var res = new HashMap<Long, Set<List<Long>>>();
-        for (var entry : map.entrySet()) {
-            if (entry.getValue() == null) {
-                res.put(entry.getKey(), new HashSet<>());
+        var keys = new HashSet<>(p.facts.keySet());
+        keys.addAll(p.rules.keySet());
+        for (var key : keys) {
+            if (map.get(key) == null) {
+                res.put(key, new HashSet<>());
             } else {
-                res.put(entry.getKey(), toStandardFormat(entry.getValue()));
+                res.put(key, toStandardFormat(map.get(key)));
             }
         }
         return res;
