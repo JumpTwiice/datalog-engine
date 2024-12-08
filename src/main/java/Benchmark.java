@@ -11,10 +11,11 @@ public class Benchmark {
     private static final String resPath = System.getProperty("user.dir") + "/src/main/resources/result/";
     private static final int numTrials = 5;
     private static final int timeOutSeconds = 180;
+    private static final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
     public static void main(String[] args) throws Exception {
         String[] programs = new String[]{"reachable", "clusters"};
-        Solv[] solvers = new Solv[]{Solv.TRIE}; // Temp for at undgå SCC
+        Solv[] solvers = new Solv[]{Solv.SIMPLE, Solv.TRIE}; // Temp for at undgå SCC
 
         for (String program : programs) {
             String filename = program + ".datalog";
@@ -73,7 +74,6 @@ public class Benchmark {
                 semiWriter.println("Avg: " + avgSemi);
                 System.out.println("Naive for " + solver + ": " + avgNaive);
                 System.out.println("Semi naive for " + solver + ": " + avgSemi);
-                System.gc();
             }
             naiveWriter.close();
             semiWriter.close();
@@ -83,15 +83,16 @@ public class Benchmark {
     private static long runWithSolverAndTimeOut(Solv s, String filename, int timeOutSeconds, boolean withSemi) throws Exception {
         String eval = withSemi ? "semi-naive" : "naive";
         System.out.print("Running " + s + " with " + eval + "... ");
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         final Future<Long> handler = executor.submit(() -> runWithSolver(s, filename, withSemi));
         Long res;
         try {
             res = handler.get(timeOutSeconds, TimeUnit.SECONDS);
             System.out.println("Took " + res + " ms");
-        } catch (TimeoutException | OutOfMemoryError e) {
+        } catch (TimeoutException e) {
             res = -1L;
             System.out.println("Timed out");
+        } finally {
+            executor.shutdownNow();
         }
         return res;
     }
