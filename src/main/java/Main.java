@@ -71,8 +71,9 @@ public class Main {
     public static String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
 
     public static void main(String[] args) throws Exception {
-        Testing.runRandomTests(1000);
+        System.out.println(createClusterProblem(70, 3));
         System.exit(0);
+        Testing.runRandomTests(1000);
 
 
 
@@ -135,6 +136,23 @@ public class Main {
         res += "reachable(X,Y) :- reachable(X,Z), edge(Z,Y).\n";
         res += "?-reachable(X,3)";
         return res;
+    }
+
+    private static String createClusterProblem(int numClusters, int clusterSize) {
+        StringBuilder res = new StringBuilder();
+        for (int i = 0; i < numClusters; i++) {
+            for (int j = 0; j < clusterSize; j++) {
+                int offset = i * clusterSize;
+                int u = (j + i * clusterSize);
+                int v = ((u + 1) % clusterSize) + offset;
+                res.append("edge(").append(u).append(",").append(v).append(").");
+            }
+        }
+        res.append("\nedge(X,Y) :- edge(Y,X).\n");
+        res.append("reachable(X,Y) :- edge(X,Y).\n");
+        res.append("reachable(X,Y) :- reachable(X,Z), edge(Z,Y).\n");
+        res.append("?-reachable(X,3)");
+        return res.toString();
     }
 
     private static void beepTest() throws Exception {

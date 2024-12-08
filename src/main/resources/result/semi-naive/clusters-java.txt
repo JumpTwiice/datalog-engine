@@ -1,0 +1,12 @@
+Simple Solver:136
+132
+88
+92
+111
+Avg 111
+Trie Solver:1
+1
+1
+0
+1
+Avg 0
