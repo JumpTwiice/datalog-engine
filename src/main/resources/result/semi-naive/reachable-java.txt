@@ -1,12 +1,14 @@
-Simple Solver:7249
-7301
-7327
-7324
-6694
-Avg 7179
-Trie Solver:27
-29
-32
-27
-27
-Avg 28
+Simple Solver:
+11407
+18412
+21683
+28445
+37300
+Avg: 23449
+Trie Solver:
+81
+192
+156
+172
+236
+Avg: 167

@@ -1,12 +1,14 @@
-Simple Solver:0
-0
-0
-0
-0
-Avg 0
-Trie Solver:0
-0
-0
-0
-0
-Avg 0
+Simple Solver:
+T/O
+T/O
+T/O
+T/O
+T/O
+Avg: 0
+Trie Solver:
+12042
+12173
+8899
+12946
+19894
+Avg: 13190

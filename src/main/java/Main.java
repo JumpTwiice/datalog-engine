@@ -71,7 +71,7 @@ public class Main {
     public static String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
 
     public static void main(String[] args) throws Exception {
-        System.out.println(createClusterProblem(70, 3));
+        System.out.println(createClusterProblem(70, 4));
         System.exit(0);
         Testing.runRandomTests(1000);
 
