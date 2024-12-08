@@ -84,15 +84,16 @@ public class Benchmark {
         String eval = withSemi ? "semi-naive" : "naive";
         System.out.print("Running " + s + " with " + eval + "... ");
         final Future<Long> handler = executor.submit(() -> runWithSolver(s, filename, withSemi));
-        Long res;
+        Long res = -1L;
         try {
             res = handler.get(timeOutSeconds, TimeUnit.SECONDS);
             System.out.println("Took " + res + " ms");
         } catch (TimeoutException e) {
-            res = -1L;
             System.out.println("Timed out");
-        } finally {
+        } catch (Exception e) {
             executor.shutdownNow();
+        } finally {
+            handler.cancel(true);
         }
         return res;
     }
