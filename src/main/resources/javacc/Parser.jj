@@ -46,6 +46,13 @@ SKIP : {
 }
 
 Program parse(): {
+//    Reset static variables.
+    Parser.predCounter = 0L;
+    Parser.varCounter = 0L;
+    Parser.varToId = new HashMap<>();
+    Parser.idToVar = new HashMap<>();
+
+
     Map<Long, List<Atom>> facts = new HashMap<>();
     Map<Long, List<Rule>> rules = new HashMap<>();
     Atom q = null;

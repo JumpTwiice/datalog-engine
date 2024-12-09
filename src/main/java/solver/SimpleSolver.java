@@ -11,7 +11,7 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
     private Map<Long, Set<List<Long>>> solutions;
 
     public SimpleSolver(Program p) {
-        Transformer.setEqSet(p);
+        p.setupForSimpleSolver();
         this.p = p;
         solutions = initializeWithFacts();
     }
@@ -46,7 +46,7 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
             done = true;
             Map<Long, Set<List<Long>>> newSolutions = new HashMap<>();
             for (var r : p.rules.keySet()) {
-                newSolutions.put(r, eval(p, r, solutions));
+                newSolutions.put(r, eval(r, solutions));
             }
             loop:
             for (var x : newSolutions.keySet()) {
@@ -71,7 +71,7 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
     public Map<Long, Set<List<Long>>> semiNaiveEval() {
         Map<Long, Set<List<Long>>> deltaSolutions = initializeEmpty();
         for (var p_i : p.rules.keySet()) {
-            deltaSolutions.put(p_i, eval(p, p_i, solutions));
+            deltaSolutions.put(p_i, eval(p_i, solutions));
         }
         Map<Long, Set<List<Long>>> temp = deltaSolutions;
         deltaSolutions.keySet().forEach(e ->
@@ -88,7 +88,7 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
             deltaSolutions = initializeEmpty();
 
             for (var p_i : p.rules.keySet()) {
-                deltaSolutions.put(p_i, evalIncremental(p, p_i, solutions, deltaPrimeSolutions));
+                deltaSolutions.put(p_i, evalIncremental(p_i, solutions, deltaPrimeSolutions));
                 deltaSolutions.get(p_i).removeAll(solutions.get(p_i));
             }
             for (var x : deltaSolutions.keySet()) {
@@ -125,31 +125,31 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
         return solutions;
     }
 
-    public static Set<List<Long>> eval(Program p, long p_i, Map<Long, Set<List<Long>>> solutions) {
+    public Set<List<Long>> eval(long p_i, Map<Long, Set<List<Long>>> solutions) {
         Set<List<Long>> sol = new HashSet<>();
         for (var r : p.rules.get(p_i)) {
-            sol.addAll(evalRule(p, r, r.body.stream().map(x -> solutions.get(x.pred)).toList()));
+            sol.addAll(evalRule(r, r.body.stream().map(x -> solutions.get(x.pred)).toList()));
         }
         return sol;
     }
 
-    public static Set<List<Long>> evalIncremental(Program p, long p_i, Map<Long, Set<List<Long>>> solutions, Map<Long, Set<List<Long>>> deltaSolutions) {
+    public Set<List<Long>> evalIncremental(long p_i, Map<Long, Set<List<Long>>> solutions, Map<Long, Set<List<Long>>> deltaSolutions) {
         Set<List<Long>> sol = new HashSet<>();
         for (var r : p.rules.get(p_i)) {
-            sol.addAll(evalRuleIncremental(p, r, solutions, deltaSolutions));
+            sol.addAll(evalRuleIncremental(r, solutions, deltaSolutions));
         }
         return sol;
     }
 
-    public static Set<List<Long>> evalRule(Program p, Rule r, List<Set<List<Long>>> solutions) {
+    public Set<List<Long>> evalRule(Rule r, List<Set<List<Long>>> solutions) {
         if (solutions.stream().anyMatch(Objects::isNull)) {
             return new HashSet<>();
         }
-        var satisfyingTuples = join(p, r, solutions);
+        var satisfyingTuples = join(r, solutions);
         return project(r, satisfyingTuples);
     }
 
-    public static Set<List<Long>> evalRuleIncremental(Program p, Rule r, Map<Long, Set<List<Long>>> solutions, Map<Long, Set<List<Long>>> newSolutions) {
+    public Set<List<Long>> evalRuleIncremental(Rule r, Map<Long, Set<List<Long>>> solutions, Map<Long, Set<List<Long>>> newSolutions) {
         Set<List<Long>> newNewSolutions = new HashSet<>();
 
         var sols = r.body.stream().map(x -> solutions.containsKey(x.pred) ? solutions.get(x.pred) : p.facts.get(x.pred)).collect(Collectors.toCollection(ArrayList::new));
@@ -157,21 +157,14 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
         for(var i = 0; i < sols.size(); i++) {
             var atomID = r.body.get(i).pred;
             sols.set(i, newSolutions.get(atomID));
-            newNewSolutions.addAll(evalRule(p, r, sols));
+            newNewSolutions.addAll(evalRule(r, sols));
             sols.set(i, solutions.get(atomID));
         }
 
-//        var meaningFullRelations = r.body.stream().map(x -> x.pred).filter(x -> p.rules.containsKey(x)).collect(Collectors.toSet());
-//        meaningFullRelations.forEach(x -> {
-//            var temp = solutions.get(x);
-//            solutions.put(x, newSolutions.get(x));
-//            newNewSolutions.addAll(evalRule(p, r, solutions));
-//            solutions.put(x, temp);
-//        });
         return newNewSolutions;
     }
 
-    public static Set<List<Long>> project(Rule r, HashSet<ArrayList<List<Long>>> tuples) {
+    public Set<List<Long>> project(Rule r, HashSet<ArrayList<List<Long>>> tuples) {
         return tuples.stream().map(tuple -> r.head.ids.stream().map(id -> {
             if (!id.isVar) {
                 return id.value;
@@ -182,9 +175,8 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
         }).collect(Collectors.toCollection(ArrayList::new))).collect(Collectors.toCollection(HashSet::new));
     }
 
-    public static HashSet<ArrayList<List<Long>>> join(Program p, Rule r, List<Set<List<Long>>> solutions) {
-        var cartProd = cartesianProduct(p, r, solutions, r.body.size() - 1);
-//        TODO: Create a better version where this is pushed down to as early in the cartesian product as possible.
+    public HashSet<ArrayList<List<Long>>> join(Rule r, List<Set<List<Long>>> solutions) {
+        var cartProd = cartesianProduct(solutions);
         var satisfyingTuples = cartProd.stream().filter(tuple -> {
 //            Assert constant constraints
             for (int i = 0; i < r.equalitySet.constCollection.size(); i += 3) {
@@ -213,28 +205,26 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
         return satisfyingTuples;
     }
 
-    public static Set<ArrayList<List<Long>>> cartesianProduct(Program p, Rule r, List<Set<List<Long>>> solutions, int i) {
-        if (i == 0) {
-            Set<List<Long>> factSet;
+    public Set<ArrayList<List<Long>>> cartesianProduct(List<Set<List<Long>>> solutions) {
+        Set<List<Long>> factSet = solutions.getFirst();
+        var prev = factSet.stream().map(toBeWrapped -> {
+            var list = new ArrayList<List<Long>>();
+            list.add(toBeWrapped);
+            return list;
+        }).collect(Collectors.toCollection(HashSet::new));
+
+        for(var i = 1; i < solutions.size(); i++) {
+            HashSet<ArrayList<List<Long>>> current = new HashSet<>();
             factSet = solutions.get(i);
-            var wrapped = factSet.stream().map(toBeWrapped -> {
-                var list = new ArrayList<List<Long>>();
-                list.add(toBeWrapped);
-                return list;
-            }).collect(Collectors.toCollection(HashSet::new));
-            return wrapped;
-        }
-        var prev = cartesianProduct(p, r, solutions, i - 1);
-        Set<ArrayList<List<Long>>> result = new HashSet<>();
-        Set<List<Long>> factSet;
-        factSet = solutions.get(i);
-        for (var x : factSet) {
-            for (var y : prev) {
-                var clone = (ArrayList<List<Long>>) y.clone(); // Stupid backwards compatible.
-                clone.add(x);
-                result.add(clone);
+            for (var x : factSet) {
+                for (var y : prev) {
+                    var clone = (ArrayList<List<Long>>) y.clone(); // Stupid backwards compatible.
+                    clone.add(x);
+                    current.add(clone);
+                }
             }
+            prev = current;
         }
-        return result;
+        return prev;
     }
 }
