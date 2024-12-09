@@ -78,8 +78,8 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
-        System.out.println(createClusterProblem(70, 4));
-        Testing.runAllTests();
+//        System.out.println(createClusterProblem(70, 4));
+//        Testing.runAllTests();
         Testing.runRandomTests(1000);
         System.exit(0);
 
@@ -93,8 +93,8 @@ public class Main {
 //        System.exit(0);
 
 //        String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
-//        var is = new FileInputStream(projectPath + "test1.datalog");
-        var is = new FileInputStream(projectPath + "test2.datalog");
+        var is = new FileInputStream(projectPath + "test1.datalog");
+//        var is = new FileInputStream(projectPath + "test2.datalog");
 //        var is = new FileInputStream(projectPath + "test3.datalog");
 //        var is = new FileInputStream(projectPath + "test4.datalog");
 //        var is = new FileInputStream(projectPath + "test5.datalog");
@@ -117,8 +117,8 @@ public class Main {
 //        p.setupForSimpleSolver();
 //        Checker.checkProgram(p);
 //        var solver = new SCCSolverDecorator<>(p, new SimpleSolver(p));
-//        var solver = new SCCSolverDecorator<>(p, new TrieSolver(p)); // Does not work atm
-        var solver = new TrieSolver(p);
+        var solver = new SCCSolverDecorator<>(p, new TrieSolver(p)); // Does not work atm
+//        var solver = new TrieSolver(p);
 //        var solver = new SimpleSolver(p);
 //        var x = solver.naiveEval();
         var x = solver.semiNaiveEval();
