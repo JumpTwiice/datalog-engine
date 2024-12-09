@@ -1,7 +1,12 @@
 import java.lang.System;
 
+
+def edges(n: Int32): Set[(Int32, Int32)] =
+  List.range(0, n).map()
+
 def main(): Unit \ IO =
   let start = System.currentTimeMillis();
+  println(start);
   let p = #{
     Edge(x, y) :- Edge(y, x).
     Reachable(x, y) :- Edge(x, y).
@@ -12,9 +17,8 @@ def main(): Unit \ IO =
   let edges = inject s into Edge;
   let q = query edges, p select x from Reachable(x, 3);
   let end = System.currentTimeMillis();
+  println(end);
   println(q);
-  println(end-start);
-  println(start);
-  println(end)
+  println(end-start)
 
   

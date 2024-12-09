@@ -134,7 +134,7 @@ public class Main {
     }
 
 
-    private static String computeHardProblem(int n) {
+    public static String computeHardProblem(int n) {
         var res = "";
         for (var i = 0; i < n; i++) {
             res += "edge(" + i + "," + (i + 1) + ").";

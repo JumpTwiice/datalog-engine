@@ -1,4 +1,5 @@
 import ast.Program;
+import org.json.simple.JSONObject;
 import solver.*;
 
 import java.io.*;
@@ -11,81 +12,105 @@ public class Benchmark {
     private static final String resPath = System.getProperty("user.dir") + "/src/main/resources/result/";
     private static final int numTrials = 5;
     private static final int timeOutSeconds = 180;
-    private static final ExecutorService executor = Executors.newFixedThreadPool(8);
+    private static ExecutorService executor;
 
     public static void main(String[] args) throws Exception {
-        String[] programs = new String[]{"reachable", "clusters"};
-        Solv[] solvers = new Solv[]{Solv.TRIE, Solv.SIMPLE}; // Temp for at undgå SCC
+        executor = Executors.newFixedThreadPool(8);
+        compare(true);
+        compare(false);
+        System.exit(0);
 
+        String[] programs = new String[]{"reachable", "clusters"};
+        Solv solver = Solv.TRIE;
+        benchmark(programs, solver, true);
+        benchmark(programs, solver, false);
+
+        executor.shutdownNow();
+    }
+
+    private static void compare(boolean withSemi) throws Exception {
+        JSONObject outerJSON = new JSONObject();
+//        Solv[] solvers = new Solv[]{Solv.TRIE, Solv.SIMPLE};
+        for (Solv solver : Solv.values()) {
+            JSONObject solverJSON = new JSONObject();
+            outerJSON.put(solver.toString(), solverJSON);
+            for (int n = 30; n <= 130; n += 10) {
+                String program = Main.computeHardProblem(n);
+                var is = new ByteArrayInputStream(program.getBytes(StandardCharsets.UTF_8));
+                var parser = new Parser(is);
+                var p = parser.parse();
+                is.close();
+
+                int numTimedOut = 0;
+                long sum = 0;
+                for (int i = 0; i < numTrials; i++) {
+                    var time = runWithSolverAndTimeOut(solver, p, 60, withSemi);
+                    if (time == -1L) {
+                        numTimedOut++;
+                    } else {
+                        sum += time;
+                    }
+                }
+                long avg = sum / Math.max(1, numTrials - numTimedOut);
+                System.out.println("Average time (n=" + n + "): " + avg);
+                solverJSON.put(n, avg);
+            }
+        }
+        String out = resPath + (withSemi ? "semi-naive/" : "naive/") +  "hard-problem.json";
+        PrintWriter writer = new PrintWriter(out, StandardCharsets.UTF_8);
+        outerJSON.writeJSONString(writer);
+        writer.close();
+    }
+
+    private static void benchmark(String[] programs, Solv solver, boolean withSemi) throws Exception {
         for (String program : programs) {
             String filename = program + ".datalog";
+            var is = new FileInputStream(projectPath + filename);
+            var parser = new Parser(is);
+            var p = parser.parse();
+            is.close();
 
             System.out.println("Profile for " + filename + "...");
             System.out.println("----------------------------");
             System.out.println("Warming up...");
 
-            for (Solv solver: solvers) {
-                for (int i = 0; i < 5; i++) {
-                    var x = runWithSolverAndTimeOut(solver, filename, 5, false);
-                    var y = runWithSolverAndTimeOut(solver, filename, 5, true);
-                }
+            for (int i = 0; i < 5; i++) {
+                var x = runWithSolverAndTimeOut(solver, p, 5, withSemi);
             }
 
             System.out.println("Benchmarking...");
-            String outputFileNaive = resPath + "naive/" + program + "-java.txt";
-            String outputFileSemi = resPath + "semi-naive/" + program + "-java.txt";
+            String outputFileName = program + solver.toFileSuffix() + ".txt";
+            String outputFile = resPath + (withSemi ? "semi-naive/" : "naive/") + outputFileName;
 
-            PrintWriter naiveWriter = new PrintWriter(outputFileNaive, StandardCharsets.UTF_8);
-            PrintWriter semiWriter = new PrintWriter(outputFileSemi, StandardCharsets.UTF_8);
+            PrintWriter writer = new PrintWriter(outputFile, StandardCharsets.UTF_8);
 
-            for (Solv solver: solvers) {
-                long naiveSum = 0;
-                long semiSum = 0;
+            long sum = 0;
 
-                naiveWriter.println(solver + ":");
-                semiWriter.println(solver + ":");
+            int numTimedOut = 0;
 
-                int numTimedOutNaive = 0;
-                int numTimedOutSemi = 0;
+            for (int i = 0; i < numTrials; i++) {
+                long time = runWithSolverAndTimeOut(solver, p, timeOutSeconds, withSemi);
 
-                for (int i = 0; i < numTrials; i++) {
-                    long timeNaive = runWithSolverAndTimeOut(solver, filename, timeOutSeconds, false);
-                    long timeSemi = runWithSolverAndTimeOut(solver, filename, timeOutSeconds, true);
-
-                    if (timeNaive == -1L) {
-                        numTimedOutNaive++;
-                        naiveWriter.println("T/O");
-                    } else {
-                        naiveSum += timeNaive;
-                        naiveWriter.println(timeNaive);
-                    }
-                    if (timeSemi == -1L) {
-                        numTimedOutSemi++;
-                        semiWriter.println("T/O");
-                    } else {
-                        semiSum += timeSemi;
-                        semiWriter.println(timeSemi);
-                    }
+                if (time == -1L) {
+                    numTimedOut++;
+                    writer.println("T/O");
+                } else {
+                    sum += time;
+                    writer.println(time);
                 }
-                long avgNaive = naiveSum / Math.max(1, numTrials - numTimedOutNaive);
-                long avgSemi = semiSum / Math.max(1, numTrials - numTimedOutSemi);
-
-                naiveWriter.println("Avg: " + avgNaive);
-                semiWriter.println("Avg: " + avgSemi);
-                System.out.println("Naive for " + solver + ": " + avgNaive);
-                System.out.println("Semi naive for " + solver + ": " + avgSemi);
-                System.gc();
             }
-            naiveWriter.close();
-            semiWriter.close();
+            long avg = sum / Math.max(1, numTrials - numTimedOut);
+
+            writer.println("Avg: " + avg);
+            System.out.println((withSemi ? "Semi " : "") + "naive for " + solver + ": " + avg);
+            writer.close();
         }
-        executor.shutdownNow();
     }
 
-    private static long runWithSolverAndTimeOut(Solv s, String filename, int timeOutSeconds, boolean withSemi) throws Exception {
+    private static long runWithSolverAndTimeOut(Solv s, Program p, int timeOutSeconds, boolean withSemi) throws Exception {
         String eval = withSemi ? "semi-naive" : "naive";
         System.out.print("Running " + s + " with " + eval + "... ");
-        final Future<Long> handler = executor.submit(() -> runWithSolver(s, filename, withSemi));
+        final Future<Long> handler = executor.submit(() -> runWithSolver(s, p, withSemi));
         Long res = -1L;
         try {
             res = handler.get(timeOutSeconds, TimeUnit.SECONDS);
@@ -93,6 +118,7 @@ public class Benchmark {
         } catch (TimeoutException e) {
             System.out.println("Timed out");
         } catch (Exception e) {
+            System.out.println(e.toString());
             executor.shutdownNow();
         } finally {
             handler.cancel(true);
@@ -100,21 +126,18 @@ public class Benchmark {
         return res;
     }
 
-    private static long runWithSolver(Solv s, String filename, boolean withSemi) throws Exception {
-        var is = new FileInputStream(projectPath + filename);
-        var parser = new Parser(is);
-        var p = parser.parse();
-        is.close();
+    private static long runWithSolver(Solv s, Program p, boolean withSemi) throws Exception {
         Solver<?> solver;
-        var time = System.currentTimeMillis();
+        p.setupForSimpleSolver();
+        p.setupForTrieSolver();
         switch (s) {
             case SIMPLE -> solver = new SimpleSolver(p);
-            case TRIE -> {
-                p.setupForTrieSolver();
-                solver = new TrieSolver(p);
-            }
-            default -> throw new Exception("hej");
+            case TRIE -> solver = new TrieSolver(p);
+            case SCC_SIMPLE -> solver = new SCCSolverDecorator<>(p, new SimpleSolver(p));
+            case SCC_TRIE -> solver = new SCCSolverDecorator<>(p, new TrieSolver(p));
+            default -> throw new Exception("Impossible");
         }
+        var time = System.currentTimeMillis();
         Map<Long, ?> x = withSemi ? solver.semiNaiveEval() : solver.naiveEval();
         time = System.currentTimeMillis() - time;
         return time;
@@ -128,6 +151,7 @@ enum Solv {
     SCC_TRIE("SCC Trie Solver");
 
     private final String text;
+
     Solv(final String text) {
         this.text = text;
     }
@@ -135,5 +159,9 @@ enum Solv {
     @Override
     public String toString() {
         return text;
+    }
+
+    public String toFileSuffix() {
+        return "-" + text.toLowerCase().replace(" ", "-");
     }
 }
