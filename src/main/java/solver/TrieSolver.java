@@ -43,7 +43,8 @@ public class TrieSolver implements Solver<SimpleTrie> {
         for (var p_i : p.rules.keySet()) {
             deltaSolutions.put(p_i, eval(p_i, solutions));
         }
-        solutions = deltaSolutions.cloneTrieSet();
+        solutions.meld(deltaSolutions.cloneTrieSet());
+//        solutions = deltaSolutions.cloneTrieSet();
 
         boolean done;
         do {

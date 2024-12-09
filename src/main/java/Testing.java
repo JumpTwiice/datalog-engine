@@ -1,11 +1,10 @@
 import ast.Program;
+import solver.SCCSolverDecorator;
 import solver.SimpleSolver;
 import solver.Solver;
 import solver.TrieSolver;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -152,6 +151,7 @@ public class Testing {
             solver.semiNaiveEval();
             solutions.add(solver.solutionsToPredMap());
             p.setupForTrieSolver();
+
             solver = new TrieSolver(p);
             solver.naiveEval();
             solutions.add(solver.solutionsToPredMap());
@@ -159,7 +159,12 @@ public class Testing {
             solver.semiNaiveEval();
             solutions.add(solver.solutionsToPredMap());
 
-//            TODO: Do for SCC
+            solver = new SCCSolverDecorator<>(p, new TrieSolver(p));
+            solver.naiveEval();
+            solutions.add(solver.solutionsToPredMap());
+            solver = new SCCSolverDecorator<>(p, new TrieSolver(p));
+            solver.semiNaiveEval();
+            solutions.add(solver.solutionsToPredMap());
 
             ensureEquality(solutions);
         }
