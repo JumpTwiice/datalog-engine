@@ -16,9 +16,10 @@ public class Benchmark {
 
     public static void main(String[] args) throws Exception {
         executor = Executors.newFixedThreadPool(8);
-        compare(true);
-        compare(false);
-        System.exit(0);
+//        compare(true);
+//        compare(false);
+//        System.exit(0);
+
 
         String[] programs = new String[]{"reachable", "clusters"};
         Solv solver = Solv.TRIE;
@@ -29,11 +30,11 @@ public class Benchmark {
     }
 
     private static void compare(boolean withSemi) throws Exception {
-        JSONObject outerJSON = new JSONObject();
+        JSONObject jsonObject = new JSONObject();
         Solv[] solvers = new Solv[]{Solv.TRIE, Solv.SCC_TRIE, Solv.SCC_SIMPLE, Solv.SIMPLE};
         for (Solv solver : solvers) {
-            JSONObject solverJSON = new JSONObject();
-            outerJSON.put(solver.toString(), solverJSON);
+            JSONObject jsonObjectSolver = new JSONObject();
+            jsonObject.put(solver.toString(), jsonObjectSolver);
             for (int n = 30; n <= 130; n += 10) {
                 String program = Main.computeHardProblem(n);
                 var is = new ByteArrayInputStream(program.getBytes(StandardCharsets.UTF_8));
@@ -41,31 +42,24 @@ public class Benchmark {
                 var p = parser.parse();
                 is.close();
 
-                int trialsSucceeded = 0;
-                long sum = 0;
-                for (int i = 0; i < numTrials; i++) {
-                    var time = runWithSolverAndTimeOut(solver, p, timeOutSeconds, withSemi);
-                    if (time == -1L) {
-                        if (trialsSucceeded == 0)
-                            sum = -1L;
-                        break;
-                    } else {
-                        sum += time;
-                        trialsSucceeded++;
-                    }
-                }
-                long avg = sum / Math.max(trialsSucceeded, 1);
+                long avg = getAvgFromTrials(solver, withSemi, p);
                 System.out.println("Average time (n=" + n + "): " + avg);
-                solverJSON.put(n, avg);
+                jsonObjectSolver.put(n, avg);
             }
         }
-        String out = resPath + (withSemi ? "semi-naive/" : "naive/") +  "hard-problem.json";
-        PrintWriter writer = new PrintWriter(out, StandardCharsets.UTF_8);
+        String outputFileName = "hard-problem.json";
+        writeJSONFile(withSemi, outputFileName, jsonObject);
+    }
+
+    private static void writeJSONFile(boolean withSemi, String outputFileName, JSONObject outerJSON) throws IOException {
+        String outputFile = resPath + (withSemi ? "semi-naive/" : "naive/") + outputFileName;
+        PrintWriter writer = new PrintWriter(outputFile, StandardCharsets.UTF_8);
         outerJSON.writeJSONString(writer);
         writer.close();
     }
 
     private static void benchmark(String[] programs, Solv solver, boolean withSemi) throws Exception {
+        JSONObject jsonObject = new JSONObject();
         for (String program : programs) {
             String filename = program + ".datalog";
             var is = new FileInputStream(projectPath + filename);
@@ -82,32 +76,28 @@ public class Benchmark {
             }
 
             System.out.println("Benchmarking...");
-            String outputFileName = program + solver.toFileSuffix() + ".txt";
-            String outputFile = resPath + (withSemi ? "semi-naive/" : "naive/") + outputFileName;
-
-            PrintWriter writer = new PrintWriter(outputFile, StandardCharsets.UTF_8);
-
-            long sum = 0;
-
-            int numTimedOut = 0;
-
-            for (int i = 0; i < numTrials; i++) {
-                long time = runWithSolverAndTimeOut(solver, p, timeOutSeconds, withSemi);
-
-                if (time == -1L) {
-                    numTimedOut++;
-                    writer.println("T/O");
-                } else {
-                    sum += time;
-                    writer.println(time);
-                }
-            }
-            long avg = sum / Math.max(1, numTrials - numTimedOut);
-
-            writer.println("Avg: " + avg);
-            System.out.println((withSemi ? "Semi " : "") + "naive for " + solver + ": " + avg);
-            writer.close();
+            long avg = getAvgFromTrials(solver, withSemi, p);
+            jsonObject.put(program, avg);
         }
+        String outputFileName = solver.toFileName() + ".json";
+        writeJSONFile(withSemi, outputFileName, jsonObject);
+    }
+
+    private static long getAvgFromTrials(Solv solver, boolean withSemi, Program p) throws Exception {
+        int trialsSucceeded = 0;
+        long sum = 0;
+        for (int i = 0; i < numTrials; i++) {
+            var time = runWithSolverAndTimeOut(solver, p, timeOutSeconds, withSemi);
+            if (time == -1L) {
+                if (trialsSucceeded == 0)
+                    sum = -1L;
+                break;
+            } else {
+                sum += time;
+                trialsSucceeded++;
+            }
+        }
+        return sum / Math.max(trialsSucceeded, 1);
     }
 
     private static long runWithSolverAndTimeOut(Solv s, Program p, int timeOutSeconds, boolean withSemi) throws Exception {
@@ -164,7 +154,7 @@ enum Solv {
         return text;
     }
 
-    public String toFileSuffix() {
-        return "-" + text.toLowerCase().replace(" ", "-");
+    public String toFileName() {
+        return text.toLowerCase().replace(" ", "-");
     }
 }
