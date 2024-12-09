@@ -46,7 +46,11 @@ public class Benchmark {
                 for (int i = 0; i < numTrials; i++) {
                     var time = runWithSolverAndTimeOut(solver, p, 60, withSemi);
                     if (time == -1L) {
+                        if (i == 0) {
+                            sum = -1;
+                        }
                         numTimedOut++;
+                        break;
                     } else {
                         sum += time;
                     }
