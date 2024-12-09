@@ -21,15 +21,11 @@ public class SimpleTrie {
 
     /**
      * Sets {@link #leaves} to be empty if it is currently <node>null</node>
-     *
-     * @return <code>true</code> iff {@link #leaves} was <code>null</code>
      */
-    public synchronized boolean initializeLeavesIfNull() {
+    public void initializeLeavesIfNull() {
         if (leaves == null) {
             this.leaves = new HashSet<>();
-            return true;
         }
-        return false;
     }
 
     /**
@@ -38,7 +34,7 @@ public class SimpleTrie {
      * @param source The source node
      * @return Whether <code>source</code>'s attributes were cloned
      */
-    public synchronized boolean cloneIfEmpty(SimpleTrie source) {
+    public boolean cloneIfEmpty(SimpleTrie source) {
         if (source == null) {
             return false;
         }
@@ -50,47 +46,14 @@ public class SimpleTrie {
         return false;
     }
 
-
-    /**
-     * If {@link #children} is currently null, set it to <code>newChild</code>
-     *
-     * @param newChild The new {@link #children} attribute for <code>this</code>
-     * @return Whether {@link #children} was changed
-     */
-    public synchronized boolean setChildrenIfNull(Map<Long, SimpleTrie> newChild) {
-        if (children == null) {
-            this.children = newChild;
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * If {@link #leaves} is currently null, set it to <code>newLeaves</code>
-     *
-     * @param newLeaves The new {@link #leaves} attribute for <code>this</code>
-     * @return Whether {@link #leaves} was changed
-     */
-    public synchronized boolean setLeavesIfNull(Set<Long> newLeaves) {
-        if (leaves == null) {
-            this.leaves = newLeaves;
-            return true;
-        }
-        return false;
-    }
-
     /**
      * Sets {@link #children} to empty if they are currently <code>null</code>
-     *
-     * @return <code>true</code> iff the children were <code>null</code>
      */
 
-    public synchronized boolean initializeChildrenIfNull() {
+    public void initializeChildrenIfNull() {
         if (children == null) {
             this.children = new HashMap<>();
-            return true;
         }
-        return false;
     }
 
 
@@ -137,25 +100,24 @@ public class SimpleTrie {
 
         if (leaves != null) {
             leaves.removeAll(source.leaves);
-            if(leaves.isEmpty()) {
+            if (leaves.isEmpty()) {
                 leaves = null;
             }
         }
-        if(source.children == null || children == null) {
+        if (source.children == null || children == null) {
             return;
         }
 
-//        TODO: Looping through this might be more efficient
+//        TODO: Looping through 'this' might be more efficient
         for (var c : source.children.keySet()) {
-//                TODO: Make safe for concurrency
             if (children.containsKey(c)) {
                 children.get(c).removeAll(source.children.get(c));
-                if(children.get(c).children == null && children.get(c).leaves == null) {
+                if (children.get(c).children == null && children.get(c).leaves == null) {
                     children.remove(c);
                 }
             }
         }
-        if(children.isEmpty()) {
+        if (children.isEmpty()) {
             children = null;
         }
     }
@@ -191,7 +153,6 @@ public class SimpleTrie {
 
         boolean change = false;
         for (var c : source.children.keySet()) {
-//                TODO: Make safe for concurrency
             if (!children.containsKey(c)) {
                 children.put(c, source.children.get(c));
                 change = true;
@@ -238,9 +199,7 @@ public class SimpleTrie {
 
     private void addWithIndex(long[] list, int index) {
         if (list.length - index == 1) {
-            if (leaves == null) {
-                initializeLeavesIfNull();
-            }
+            initializeLeavesIfNull();
             leaves.add(list[list.length - 1]);
         } else {
             initializeChildrenIfNull();
@@ -300,13 +259,8 @@ public class SimpleTrie {
      */
 //    Slow. Only use on unordered. TODO: Implement fast on ordered.
     private void projectTo(int index, SimpleTrie result, int[][] positions, long[] temp) {
-//        System.out.println(result);
-//        System.out.println(index);
         if (index == positions.length) {
-//            System.out.println("CHANGING SOON");
-//            System.out.println(result);
             result.add(temp);
-//            System.out.println(result);
             return;
         }
         if (index == positions.length - 1) {
@@ -325,19 +279,14 @@ public class SimpleTrie {
         }
 
         if (positions[index] != null) {
-//            if (result.children == null) {
-//                result.initializeChildrenIfNull();
-//            }
             for (var x : children.keySet()) {
-                var callWith = temp.clone();
                 for (int i = 0; i < positions[index].length; i++) {
-                    callWith[positions[index][i]] = x;
+                    temp[positions[index][i]] = x;
                 }
-                children.get(x).projectTo(index + 1, result, positions, callWith);
+                children.get(x).projectTo(index + 1, result, positions, temp);
             }
             return;
         }
-//        Don't need to clone since we are not writing anything.
         for (var x : children.keySet()) {
             children.get(x).projectTo(index + 1, result, positions, temp);
         }
