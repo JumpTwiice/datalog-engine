@@ -74,10 +74,12 @@ public class Benchmark {
                 semiWriter.println("Avg: " + avgSemi);
                 System.out.println("Naive for " + solver + ": " + avgNaive);
                 System.out.println("Semi naive for " + solver + ": " + avgSemi);
+                System.gc();
             }
             naiveWriter.close();
             semiWriter.close();
         }
+        executor.shutdownNow();
     }
 
     private static long runWithSolverAndTimeOut(Solv s, String filename, int timeOutSeconds, boolean withSemi) throws Exception {
