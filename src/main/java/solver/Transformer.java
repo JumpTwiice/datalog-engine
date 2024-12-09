@@ -51,25 +51,6 @@ public class Transformer {
         }
     }
 
-    public static void setEqSet(Program p) {
-        for (var ruleSet : p.rules.values()) {
-            for (var r : ruleSet) {
-                r.equalitySet = new EqualitySet();
-                for (int i = 0; i < r.body.size(); i++) {
-                    var currentRelation = r.body.get(i);
-                    for (int j = 0; j < currentRelation.ids.size(); j++) {
-                        var currentTerm = currentRelation.ids.get(j);
-                        if (currentTerm.isVar) {
-                            r.equalitySet.setEqual(i, j, currentTerm.value);
-                        } else {
-                            r.equalitySet.setConstant(i, j, (int) currentTerm.value);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     private static AdornedAtom adornAtom(Atom a) {
         var adornment = a.ids.stream().map(x -> !x.isVar).collect(Collectors.toCollection(ArrayList::new));
         return new AdornedAtom(a.pred, a.ids, adornment);

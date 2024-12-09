@@ -26,6 +26,26 @@ public class Program {
         }
     }
 
+    public void setupForSimpleSolver() {
+        for (var ruleSet : rules.values()) {
+            for (var r : ruleSet) {
+                r.equalitySet = new EqualitySet();
+                for (int i = 0; i < r.body.size(); i++) {
+                    var currentRelation = r.body.get(i);
+                    for (int j = 0; j < currentRelation.ids.size(); j++) {
+                        var currentTerm = currentRelation.ids.get(j);
+                        if (currentTerm.isVar) {
+                            r.equalitySet.setEqual(i, j, currentTerm.value);
+                        } else {
+                            r.equalitySet.setConstant(i, j, (int) currentTerm.value);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
     @Override
     public String toString() {
         return "Program{" +

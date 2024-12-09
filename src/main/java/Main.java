@@ -3,6 +3,7 @@ import solver.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -70,10 +71,17 @@ res;
 public class Main {
     public static String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
 
+    public static Program fileToProgram(String name) throws Exception {
+        var is = new FileInputStream(projectPath + name);
+        return new Parser(is).parse();
+
+    }
+
     public static void main(String[] args) throws Exception {
         System.out.println(createClusterProblem(70, 4));
-        System.exit(0);
+        Testing.runAllTests();
         Testing.runRandomTests(1000);
+        System.exit(0);
 
 
 
@@ -106,7 +114,7 @@ public class Main {
         System.out.println(p);
 
         p.setupForTrieSolver();
-//        Transformer.setEqSet(p);
+//        p.setupForSimpleSolver();
 //        Checker.checkProgram(p);
 //        var solver = new SCCSolverDecorator<>(p, new SimpleSolver(p));
 //        var solver = new SCCSolverDecorator<>(p, new TrieSolver(p)); // Does not work atm
@@ -172,7 +180,7 @@ public class Main {
                 () -> {
                     try {
                         runUntillTimeOut(x -> {
-                            Transformer.setEqSet(x);
+                            x.setupForSimpleSolver();
                             new SimpleSolver(x).naiveEval();
                         }, "SimpleSolver, naive");
                     } catch (Exception e) {
@@ -195,7 +203,7 @@ public class Main {
                 () -> {
                     try {
                         runUntillTimeOut(x -> {
-                            Transformer.setEqSet(x);
+                            x.setupForSimpleSolver();
                             new SimpleSolver(x).semiNaiveEval();
                         }, "SimpleSolver, semi");
                     } catch (Exception e) {
@@ -255,7 +263,7 @@ public class Main {
             var is = new FileInputStream(projectPath + filePath);
             var parser = new Parser(is);
             var p = parser.parse();
-            solver.Transformer.setEqSet(p);
+            p.setupForSimpleSolver();
             var solver = new SimpleSolver(p);
             var solution = solver.semiNaiveEval();
             for (var x : solution.keySet()) {
@@ -273,7 +281,7 @@ public class Main {
             var is = new FileInputStream(projectPath + filePath);
             var parser = new Parser(is);
             var p = parser.parse();
-            solver.Transformer.setEqSet(p);
+            p.setupForSimpleSolver();
             SimpleSolver solver = new SimpleSolver(p);
             var solution = solver.semiNaiveEval();
             for (var x : solution.keySet()) {
