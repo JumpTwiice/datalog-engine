@@ -1,0 +1,14 @@
+Simple Solver:
+1244
+465
+740
+238
+1175
+Avg: 772
+Trie Solver:
+2
+2
+2
+2
+1
+Avg: 1
