@@ -11,11 +11,11 @@ public class Benchmark {
     private static final String resPath = System.getProperty("user.dir") + "/src/main/resources/result/";
     private static final int numTrials = 5;
     private static final int timeOutSeconds = 180;
-    private static final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private static final ExecutorService executor = Executors.newFixedThreadPool(8);
 
     public static void main(String[] args) throws Exception {
         String[] programs = new String[]{"reachable", "clusters"};
-        Solv[] solvers = new Solv[]{Solv.SIMPLE, Solv.TRIE}; // Temp for at undgå SCC
+        Solv[] solvers = new Solv[]{Solv.TRIE, Solv.SIMPLE}; // Temp for at undgå SCC
 
         for (String program : programs) {
             String filename = program + ".datalog";
@@ -25,7 +25,7 @@ public class Benchmark {
             System.out.println("Warming up...");
 
             for (Solv solver: solvers) {
-                for (int i = 0; i < 2; i++) {
+                for (int i = 0; i < 5; i++) {
                     var x = runWithSolverAndTimeOut(solver, filename, 5, false);
                     var y = runWithSolverAndTimeOut(solver, filename, 5, true);
                 }
