@@ -100,7 +100,7 @@ public class TrieSolver implements Solver<SimpleTrie> {
     }
 
     public SimpleTrie evalRule(Rule r, List<SimpleTrie> relations) {
-        if(relations.stream().anyMatch(Objects::isNull)) {
+        if (relations.stream().anyMatch(Objects::isNull)) {
             return null;
         }
 //        System.out.println("JOINING");
@@ -118,7 +118,6 @@ public class TrieSolver implements Solver<SimpleTrie> {
     }
 
 
-
 //    public SimpleTrie evalRule(Rule r, TrieMap solutions) {
 //        if(r.body.stream().anyMatch(x -> solutions.get(x.pred) == null)) {
 //            return null;
@@ -133,7 +132,7 @@ public class TrieSolver implements Solver<SimpleTrie> {
     public SimpleTrie evalRuleIncremental(Rule r, TrieMap solutions, TrieMap newSolutions) {
         SimpleTrie result = null;
         var sols = r.body.stream().map(x -> solutions.get(x.pred)).collect(Collectors.toCollection(ArrayList::new));
-        for(var i = 0; i < sols.size(); i++) {
+        for (var i = 0; i < sols.size(); i++) {
             var atomID = r.body.get(i).pred;
             sols.set(i, newSolutions.get(atomID));
 //            solutions.put(x, newSolutions.get(x));
@@ -155,59 +154,33 @@ public class TrieSolver implements Solver<SimpleTrie> {
         return result;
     }
 
-    public SimpleTrie join(Rule r, List<SimpleTrie> solutions) {
-        return generateConstraints(r, solutions, r.body.size() - 1);
-    }
+//    public SimpleTrie join(Rule r, List<SimpleTrie> solutions) {
+//        return generateConstraints(r, solutions);
+//    }
 
     /**
-     * Recursively builds the trie for the rule.
+     * Iteratively builds the trie for the rule.
      *
      * @param r
      * @param solutions
-     * @param i
      * @return
      */
-    public SimpleTrie generateConstraints(Rule r, List<SimpleTrie> solutions, int i) {
-        var atom = r.body.get(i);
+    public SimpleTrie join(Rule r, List<SimpleTrie> solutions) {
+        var atom = r.body.getFirst();
         var constBool = atom.constBool;
         var constArr = atom.constArr;
         var sameArr = atom.sameNess;
-        if (i == 0) {
-            var source = solutions.getFirst();
-            if (source == null) {
+        var source = solutions.getFirst();
+        if (source == null) {
+            return null;
+        }
+        var prev = TrieMap.cloneForTrie(source, constBool, constArr, sameArr);
+        for (var i = 1; i < solutions.size(); i++) {
+            prev = TrieMap.combine(prev, r.body.get(i), solutions.get(i), r);
+            if (prev == null) {
                 return null;
             }
-            return TrieMap.cloneForTrie(source, constBool, constArr, sameArr);
         }
-        var prev = generateConstraints(r, solutions, i - 1);
-        return TrieMap.combine(prev, r.body.get(i), solutions.get(i), r);
+        return prev;
     }
-
-//    public SimpleTrie join(Rule r, TrieMap solutions) {
-//        return generateConstraints(r, solutions, r.body.size() - 1);
-//    }
-
-    /**
-     * Recursively builds the trie for the rule.
-     *
-     * @param r
-     * @param solutions
-     * @param i
-     * @return
-     */
-//    public SimpleTrie generateConstraints(Rule r, TrieMap solutions, int i) {
-//        var atom = r.body.get(i);
-//        var boolConst = atom.getBoolAndConstArr();
-//        var constBool = boolConst.x();
-//        var constArr = boolConst.y();
-//        if (i == 0) {
-//            var source = solutions.get(r.body.getFirst().pred);
-//            if (source == null) {
-//                return null;
-//            }
-//            return solutions.cloneForTrie(r.body.getFirst(), constBool, constArr);
-//        }
-//        var prev = generateConstraints(r, solutions, i - 1);
-//        return solutions.combine(prev, r.body.get(i), r);
-//    }
 }
