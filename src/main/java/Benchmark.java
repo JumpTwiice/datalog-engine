@@ -11,7 +11,7 @@ public class Benchmark {
     private static final String projectPath = System.getProperty("user.dir") + "/src/test/benchmark/";
     private static final String resPath = System.getProperty("user.dir") + "/src/main/resources/result/";
     private static final int numTrials = 5;
-    private static final int timeOutSeconds = 180;
+    private static final int timeOutSeconds = 60;
     private static ExecutorService executor;
 
     public static void main(String[] args) throws Exception {
@@ -30,8 +30,8 @@ public class Benchmark {
 
     private static void compare(boolean withSemi) throws Exception {
         JSONObject outerJSON = new JSONObject();
-//        Solv[] solvers = new Solv[]{Solv.TRIE, Solv.SIMPLE};
-        for (Solv solver : Solv.values()) {
+        Solv[] solvers = new Solv[]{Solv.TRIE, Solv.SCC_TRIE, Solv.SCC_SIMPLE, Solv.SIMPLE};
+        for (Solv solver : solvers) {
             JSONObject solverJSON = new JSONObject();
             outerJSON.put(solver.toString(), solverJSON);
             for (int n = 30; n <= 130; n += 10) {
@@ -41,21 +41,20 @@ public class Benchmark {
                 var p = parser.parse();
                 is.close();
 
-                int numTimedOut = 0;
+                int trialsSucceeded = 0;
                 long sum = 0;
                 for (int i = 0; i < numTrials; i++) {
-                    var time = runWithSolverAndTimeOut(solver, p, 60, withSemi);
+                    var time = runWithSolverAndTimeOut(solver, p, timeOutSeconds, withSemi);
                     if (time == -1L) {
-                        if (i == 0) {
-                            sum = -1;
-                        }
-                        numTimedOut++;
+                        if (trialsSucceeded == 0)
+                            sum = -1L;
                         break;
                     } else {
                         sum += time;
+                        trialsSucceeded++;
                     }
                 }
-                long avg = sum / Math.max(1, numTrials - numTimedOut);
+                long avg = sum / Math.max(trialsSucceeded, 1);
                 System.out.println("Average time (n=" + n + "): " + avg);
                 solverJSON.put(n, avg);
             }
