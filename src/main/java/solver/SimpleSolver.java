@@ -11,7 +11,7 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
     private Map<Long, Set<List<Long>>> solutions;
 
     public SimpleSolver(Program p) {
-        p.setupForSimpleSolver();
+//        p.setupForSimpleSolver();
         this.p = p;
         solutions = initializeWithFacts();
     }
@@ -19,7 +19,7 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
     public Map<Long, Set<List<Long>>> initializeWithFacts() {
         Map<Long, Set<List<Long>>> solutions = new HashMap<>();
         for (var x : p.rules.keySet()) {
-            solutions.putIfAbsent(x, new HashSet<>());
+            solutions.computeIfAbsent(x, k -> new HashSet<>());
         }
         for (var x : p.facts.entrySet()) {
             var facts = solutions.computeIfAbsent(x.getKey(), k -> new HashSet<>());
@@ -76,8 +76,7 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
         Map<Long, Set<List<Long>>> temp = deltaSolutions;
         deltaSolutions.keySet().forEach(e ->
                 {
-                    solutions.computeIfAbsent(e, x -> new HashSet<>());
-                    solutions.get(e).addAll(temp.get(e));
+                    solutions.computeIfAbsent(e, x -> new HashSet<>()).addAll(temp.get(e));
                 }
         );
 
@@ -116,7 +115,10 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
     @Override
     public Solver<Set<List<Long>>> resetWithProgramAndFacts(Program p, Map<Long, Set<List<Long>>> facts) {
         var res = new SimpleSolver(p);
-        res.solutions = facts;
+        for(var x: facts.entrySet()) {
+            res.solutions.computeIfAbsent(x.getKey(), k -> new HashSet<>()).addAll(x.getValue());
+        }
+//        res.solutions = facts;
         return res;
     }
 

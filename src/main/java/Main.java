@@ -3,7 +3,6 @@ import solver.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -78,11 +77,9 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
-//        System.out.println(createClusterProblem(70, 4));
-//        Testing.runAllTests();
+        Testing.runAllTests();
         Testing.runRandomTests(1000);
         System.exit(0);
-
 
 
 //        runAllTests();
@@ -133,35 +130,6 @@ public class Main {
         is.close();
     }
 
-
-    public static String computeHardProblem(int n) {
-        var res = "";
-        for (var i = 0; i < n; i++) {
-            res += "edge(" + i + "," + (i + 1) + ").";
-        }
-        res += "\nedge(X,Y) :- edge(Y,X).\n";
-        res += "reachable(X,Y) :- edge(X,Y).\n";
-        res += "reachable(X,Y) :- reachable(X,Z), edge(Z,Y).\n";
-        res += "?-reachable(X,3)";
-        return res;
-    }
-
-    private static String createClusterProblem(int numClusters, int clusterSize) {
-        StringBuilder res = new StringBuilder();
-        for (int i = 0; i < numClusters; i++) {
-            for (int j = 0; j < clusterSize; j++) {
-                int offset = i * clusterSize;
-                int u = (j + i * clusterSize);
-                int v = ((u + 1) % clusterSize) + offset;
-                res.append("edge(").append(u).append(",").append(v).append(").");
-            }
-        }
-        res.append("\nedge(X,Y) :- edge(Y,X).\n");
-        res.append("reachable(X,Y) :- edge(X,Y).\n");
-        res.append("reachable(X,Y) :- reachable(X,Z), edge(Z,Y).\n");
-        res.append("?-reachable(X,3)");
-        return res.toString();
-    }
 
     private static void beepTest() throws Exception {
         ExecutorService threadPool = Executors.newFixedThreadPool(8);
@@ -219,10 +187,7 @@ public class Main {
         long diff;
         while (true) {
             i++;
-            var program = computeHardProblem(i * 10);
-            var is = new ByteArrayInputStream(program.getBytes(StandardCharsets.UTF_8));
-            var parser = new Parser(is);
-            var p = parser.parse();
+            var p = ProgramGen.hardProblem(i * 10);
             var time = System.currentTimeMillis();
             solverRunner.accept(p);
             diff = System.currentTimeMillis() - time;
