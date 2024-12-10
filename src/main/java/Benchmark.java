@@ -6,8 +6,7 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.nio.charset.StandardCharsets;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 public class Benchmark {
     private static final String projectPath = System.getProperty("user.dir") + "/src/test/benchmark/";
@@ -15,36 +14,36 @@ public class Benchmark {
     private static final int numTrials = 5;
     private static final int timeOutSeconds = 60;
     private static ExecutorService executor;
-    private static final boolean debug = false;
+    private static final boolean verbose = false;
+    private static final Solv defaultSolver = Solv.TRIE;
 
     public static void main(String[] args) throws Exception {
         executor = Executors.newFixedThreadPool(8);
-        Solv[] solvers = new Solv[]{Solv.TRIE};
-        benchmarkProblem("trie-solver-reachable.json", solvers, 100, 1000, true);
-        System.exit(0);
-
-        String[] programs = new String[]{"reachable", "clusters"};
-        Solv solver = Solv.TRIE;
-        benchmark(programs, solver, true);
-        benchmark(programs, solver, false);
-
+        if (args[0].equals("benchmark-solver")) {
+            String[] programs = new String[]{"reachable", "clusters"};
+            benchmarkSolverOnPrograms(programs, defaultSolver, true);
+            benchmarkSolverOnPrograms(programs, defaultSolver, false);
+        } else if (args[0].equals("benchmark-problem")) {
+            Solv[] solvers = new Solv[]{Solv.TRIE, Solv.SCC_TRIE};
+            int max = 16;
+            int nodes = (int) Math.pow(2, max);
+            benchmarkHardProblem("scc-reachable.json", solvers, x
+                    -> ProgramGen.reachableSCCProblem(nodes, x),
+                    1, 16, 1, true);
+        }
         executor.shutdownNow();
     }
 
-    private static void benchmarkProblem(String outputFileName, Solv[] solvers, int min, int max, boolean withSemi) throws Exception {
+    private static void benchmarkHardProblem(String outputFileName, Solv[] solvers, Function<Integer, Program> func,
+                                             int min, int max, int step, boolean withSemi) throws Exception {
         JSONObject jsonObject = new JSONObject();
         for (Solv solver : solvers) {
             JSONObject jsonObjectSolver = new JSONObject();
             jsonObject.put(solver.toString(), jsonObjectSolver);
-            for (int n = min; n <= max; n += 10) {
-                String program = Main.computeHardProblem(n);
-                var is = new ByteArrayInputStream(program.getBytes(StandardCharsets.UTF_8));
-                var parser = new Parser(is);
-                var p = parser.parse();
-                is.close();
-
+            for (int n = min; n <= max; n += step) {
+                Program p = func.apply(n);
                 long avg = getAvgFromTrials(solver, withSemi, p);
-                System.out.println("Average time (n=" + n + "): " + avg + " ms");
+                System.out.println("(" + solver + ") " + "Average time (n=" + n + "): " + avg + " ms");
                 jsonObjectSolver.put(n, avg);
             }
         }
@@ -58,7 +57,7 @@ public class Benchmark {
         writer.close();
     }
 
-    private static void benchmark(String[] programs, Solv solver, boolean withSemi) throws Exception {
+    private static void benchmarkSolverOnPrograms(String[] programs, Solv solver, boolean withSemi) throws Exception {
         JSONObject jsonObject = new JSONObject();
         for (String program : programs) {
             String filename = program + ".datalog";
@@ -101,7 +100,7 @@ public class Benchmark {
     }
 
     private static long runWithSolverAndTimeOut(Solv s, Program p, int timeOutSeconds, boolean withSemi) throws Exception {
-        if (debug) {
+        if (verbose) {
             String eval = withSemi ? "semi-naive" : "naive";
             System.out.print("Running " + s + " with " + eval + "... ");
         }
@@ -109,10 +108,10 @@ public class Benchmark {
         Long res = -1L;
         try {
             res = handler.get(timeOutSeconds, TimeUnit.SECONDS);
-            if (debug)
+            if (verbose)
                 System.out.println("Took " + res + " ms");
         } catch (TimeoutException e) {
-            if (debug)
+            if (verbose)
                 System.out.println("Timed out");
         } catch (Exception e) {
             System.out.println(e.toString());

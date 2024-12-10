@@ -4,8 +4,6 @@ import solver.SimpleSolver;
 import solver.Solver;
 import solver.TrieSolver;
 
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -34,13 +32,6 @@ public class Testing {
     public static int maxHerbrand = 20;
 
     public static Random rand = new Random(1);
-
-    public static Program parseStringToProgram(String s) throws Exception {
-        var is = new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8));
-        var parser = new Parser(is);
-        return parser.parse();
-    }
-
 
     public static String generateRandomRawProgram() {
         var predNumber =  rand.nextInt(minPreds, maxPreds);
@@ -120,7 +111,7 @@ public class Testing {
     }
 
     public static Program generateRandomParsedProgram() throws Exception {
-        return parseStringToProgram(generateRandomRawProgram());
+        return ProgramGen.parseStringToProgram(generateRandomRawProgram());
     }
 
     public static void ensureEquality(List<Map<Long, Set<List<Long>>>> solutions) {
@@ -372,7 +363,7 @@ public class Testing {
 
         public static void testCombining() throws Exception {
             String s = "f(1,2).f(2,3).r(1,1):-f(X,Y).r(2,2):-f(X,Y).";
-            var p = Testing.parseStringToProgram(s);
+            var p = ProgramGen.parseStringToProgram(s);
             var x = new SimpleSolver(p);
 
             var p_i = p.rules.keySet().stream().findFirst().get();
@@ -394,7 +385,7 @@ public class Testing {
 
         public static void testCopyEval() throws Exception {
             String s = "f(1,2).f(2,3).r(X,Y):-f(X,Y).";
-            var p = Testing.parseStringToProgram(s);
+            var p = ProgramGen.parseStringToProgram(s);
             var x = new SimpleSolver(p);
             var rule = p.rules.values().stream().findFirst().get().getFirst();
             var factSet = p.facts.values().stream().findFirst().get();
@@ -412,7 +403,7 @@ public class Testing {
 
         public static void testConstantEval() throws Exception {
             String s = "f(1,2).f(2,3).r(5,Y):-f(X,Y).";
-            var p = Testing.parseStringToProgram(s);
+            var p = ProgramGen.parseStringToProgram(s);
             var x = new SimpleSolver(p);
             var rule = p.rules.values().stream().findFirst().get().getFirst();
             var factSet = p.facts.values().stream().findFirst().get();
@@ -431,7 +422,7 @@ public class Testing {
 
         public static void testVariableSelection2() throws Exception {
             String s = "f(1,2).f(2,3).f(6,7).r(X,Y):-f(X,Z),f(Z,Y).";
-            var p = Testing.parseStringToProgram(s);
+            var p = ProgramGen.parseStringToProgram(s);
             var x = new SimpleSolver(p);
             var rule = p.rules.values().stream().findFirst().get().getFirst();
             var factSet = p.facts.values().stream().findFirst().get();
@@ -452,7 +443,7 @@ public class Testing {
 
         public static void testVariableSelection() throws Exception {
             String s = "f(1,1).f(2,2).f(1,4).f(4,5).f(5,4).r(X,X):-f(X,X).";
-            var p = Testing.parseStringToProgram(s);
+            var p = ProgramGen.parseStringToProgram(s);
             var x = new SimpleSolver(p);
             var rule = p.rules.values().stream().findFirst().get().getFirst();
             var factSet = p.facts.values().stream().findFirst().get();
@@ -470,7 +461,7 @@ public class Testing {
 
         public static void testCopySelection2() throws Exception {
             String s = "f(1,2).f(2,3).r(X,Y):-f(X,Y),f(Z,A).";
-            var p = Testing.parseStringToProgram(s);
+            var p = ProgramGen.parseStringToProgram(s);
             var x = new SimpleSolver(p);
             var rule = p.rules.values().stream().findFirst().get().getFirst();
             var factSet = p.facts.values().stream().findFirst().get();
@@ -515,7 +506,7 @@ public class Testing {
 
         public static void testCopySelection() throws Exception {
             String s = "f(1,2).f(2,3).f(1,4).r(X,Y):-f(X,Y).";
-            var p = Testing.parseStringToProgram(s);
+            var p = ProgramGen.parseStringToProgram(s);
             var x = new SimpleSolver(p);
             var rule = p.rules.values().stream().findFirst().get().getFirst();
             var factSet = p.facts.values().stream().findFirst().get();
@@ -536,7 +527,7 @@ public class Testing {
 
         public static void testConstantSelection() throws Exception {
             String s = "f(1,2).f(2,3).f(1,4).r(X):-f(1,X).";
-            var p = Testing.parseStringToProgram(s);
+            var p = ProgramGen.parseStringToProgram(s);
             var x = new SimpleSolver(p);
             var rule = p.rules.values().stream().findFirst().get().getFirst();
             var factSet = p.facts.values().stream().findFirst().get();
