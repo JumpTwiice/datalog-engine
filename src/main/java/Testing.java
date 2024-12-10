@@ -139,18 +139,15 @@ public class Testing {
         for(var i = 0; i < n; i++) {
             System.out.println(i);
             List<Map<Long, Set<List<Long>>>> solutions = new ArrayList<>();
-//            System.out.println(i);
             var p = generateRandomParsedProgram();
-//            System.out.println(p);
             p.setupForSimpleSolver();
-//            p.setupForTrieSolver();
+            p.setupForTrieSolver();
             Solver<?> solver = new SimpleSolver(p);
             solver.naiveEval();
             solutions.add(solver.solutionsToPredMap());
             solver = new SimpleSolver(p);
             solver.semiNaiveEval();
             solutions.add(solver.solutionsToPredMap());
-            p.setupForTrieSolver();
 
             solver = new TrieSolver(p);
             solver.naiveEval();
@@ -158,6 +155,14 @@ public class Testing {
             solver = new TrieSolver(p);
             solver.semiNaiveEval();
             solutions.add(solver.solutionsToPredMap());
+
+            solver = new SCCSolverDecorator<>(p, new SimpleSolver(p));
+            solver.naiveEval();
+            solutions.add(solver.solutionsToPredMap());
+            solver = new SCCSolverDecorator<>(p, new SimpleSolver(p));
+            solver.semiNaiveEval();
+            solutions.add(solver.solutionsToPredMap());
+
 
             solver = new SCCSolverDecorator<>(p, new TrieSolver(p));
             solver.naiveEval();

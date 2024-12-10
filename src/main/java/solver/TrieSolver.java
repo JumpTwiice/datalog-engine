@@ -65,7 +65,7 @@ public class TrieSolver implements Solver<SimpleTrie> {
     @Override
     public Solver<SimpleTrie> resetWithProgramAndFacts(Program p, Map<Long, SimpleTrie> facts) {
         var res = new TrieSolver(p);
-        res.solutions = (TrieMap) facts;
+        res.solutions.meld((TrieMap) facts);
         return res;
     }
 
