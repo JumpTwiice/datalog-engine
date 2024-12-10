@@ -15,12 +15,12 @@ public class Benchmark {
     private static final int timeOutSeconds = 60;
     private static ExecutorService executor;
     private static final boolean verbose = false;
-    private static final Solv defaultSolver = Solv.TRIE;
+    private static final Solv defaultSolver = Solv.SCC_TRIE;
 
     public static void main(String[] args) throws Exception {
         executor = Executors.newFixedThreadPool(8);
         if (args[0].equals("benchmark-solver")) {
-            String[] programs = new String[]{"reachable", "clusters"};
+            String[] programs = new String[]{"cartesian"};
             benchmarkSolverOnPrograms(programs, defaultSolver, true);
             benchmarkSolverOnPrograms(programs, defaultSolver, false);
         } else if (args[0].equals("benchmark-problem")) {

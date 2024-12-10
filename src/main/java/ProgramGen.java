@@ -4,6 +4,10 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
 public class ProgramGen {
+    public static void main(String[] args) {
+        System.out.println(cartesianProductProblem(1000));
+    }
+
     public static Program hardProblem(int n) throws Exception {
         var res = "";
         for (var i = 0; i < n; i++) {
@@ -31,6 +35,17 @@ public class ProgramGen {
         res.append("reachable(X,Y) :- reachable(X,Z), edge(Z,Y).\n");
         res.append("?-reachable(X,3)");
         return parseStringToProgram(res.toString());
+    }
+
+    public static String cartesianProductProblem(int numFacts) {
+        StringBuilder res = new StringBuilder();
+        for (int i = 0; i < numFacts/2; i++) {
+            res.append("p(").append(i).append(",").append(i+1).append(").");
+            res.append("q(").append(i).append(",").append(i+1).append(").");
+        }
+        res.append("\nr(X,Y,Z,W) :- p(X,Y), q(Z,W).\n");
+        res.append("?-r(1,Y,Z,W)");
+        return res.toString();
     }
 
     public static Program reachableSCCProblem(int numNodes, int depth) throws RuntimeException {
