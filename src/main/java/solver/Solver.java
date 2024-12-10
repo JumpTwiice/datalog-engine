@@ -15,6 +15,11 @@ public interface Solver<V> {
     Solver<V> resetWithProgramAndFacts(Program p, Map<Long, V> facts);
     Map<Long, Set<List<Long>>> solutionsToPredMap();
 
+    // Assumes program was transformed before generating the answer
+    static Set<List<Long>> getQueryAnswer(Map<Long, Set<List<Long>>> solutions, Program p) {
+        return solutions.get(p.query.pred);
+    }
+
     static String formatSolution(Map<Long, Set<List<Long>>> solutions, Program p) {
         List<String> preds = new ArrayList<>();
         for (var id: solutions.keySet()) {
