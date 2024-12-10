@@ -1,3 +1,6 @@
 .idea/
 target/
 .venv/
+/src/main/resources/souffle/profiler_html/
+/src/main/resources/souffle/output/
+
