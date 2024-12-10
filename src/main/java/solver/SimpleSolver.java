@@ -19,7 +19,7 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
     public Map<Long, Set<List<Long>>> initializeWithFacts() {
         Map<Long, Set<List<Long>>> solutions = new HashMap<>();
         for (var x : p.rules.keySet()) {
-            solutions.putIfAbsent(x, new HashSet<>());
+            solutions.computeIfAbsent(x, k -> new HashSet<>());
         }
         for (var x : p.facts.entrySet()) {
             var facts = solutions.computeIfAbsent(x.getKey(), k -> new HashSet<>());
@@ -76,8 +76,7 @@ public class SimpleSolver implements Solver<Set<List<Long>>> {
         Map<Long, Set<List<Long>>> temp = deltaSolutions;
         deltaSolutions.keySet().forEach(e ->
                 {
-                    solutions.computeIfAbsent(e, x -> new HashSet<>());
-                    solutions.get(e).addAll(temp.get(e));
+                    solutions.computeIfAbsent(e, x -> new HashSet<>()).addAll(temp.get(e));
                 }
         );
 
