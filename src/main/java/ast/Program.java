@@ -18,6 +18,22 @@ public class Program {
         this.idToVar = idToVar;
     }
 
+    public void setupForQueryAnswering() {
+        if(query == null){
+            throw new RuntimeException("Query was null when asked to answer query.");
+        }
+        var id = nextPred++;
+        ArrayList<Atom> body = new ArrayList<>();
+        var newQuery = new Atom(id, query.ids);
+        idToVar.put(id, idToVar.get(query.pred) + "_query");
+        body.add(query);
+        var newRule = new Rule(newQuery, body);
+        var ruleSet = new ArrayList<Rule>();
+        ruleSet.add(newRule);
+        rules.put(id, ruleSet);
+        this.query = newQuery;
+    }
+
     public void setupForTrieSolver() {
         for(var ruleSet: rules.values()) {
             for(var r: ruleSet) {
@@ -61,7 +77,6 @@ public class Program {
     }
 
     public Program cloneProgram() {
-//        facts.clone();
         return new Program(new HashMap<>(facts), new HashMap<>(rules), query, idToVar, nextPred);
     }
 }
