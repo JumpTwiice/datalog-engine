@@ -1,0 +1,11 @@
+edge1(1,2).
+edge1(2,3).
+
+reachable1(X,Y):- edge1(X,Y).
+reachable1(X,Y):- reachable1(X,Z),edge1(Z,Y).
+
+edge2(3,100).
+edge2(X,Y):- reachable1(X,Y).
+
+reachable2(X,Y):- edge2(X,Y).
+reachable2(X,Y):- reachable2(X,Z),edge2(Z,Y).

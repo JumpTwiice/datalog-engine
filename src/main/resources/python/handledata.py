@@ -28,13 +28,12 @@ def normalize(data, func):
         data[solver] = dict(mapping)
 
 def plot(data):
-    normalize(data, lambda x: x**2)
+    # normalize(data, lambda x: x**3)
     colors = ["red", "blue", "green", "purple"]
     for solver, color in zip(data.keys(), colors):
         x = list(data[solver].keys())
         y = list(data[solver].values())
         plt.plot(x, y, "o", label=solver, color=color)
-
     plt.xlabel("Edge relation size")
     plt.ylabel("Time [ms]")
     plt.title("Hard Problem")
@@ -45,7 +44,8 @@ def main():
     semi_data = get_data(f"{path}\\result\\semi-naive\\hard-problem.json")
     naive_data = get_data(f"{path}\\result\\naive\\hard-problem.json")
     trie_solver_data = get_data(f"{path}\\result\\semi-naive\\trie-solver-reachable.json")
-    plot(trie_solver_data)
+    scc_reachable_data = get_data(f"{path}\\result\\semi-naive\\scc-reachable.json")
+    plot(scc_reachable_data)
 
 if __name__ == "__main__":
     main()
