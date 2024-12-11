@@ -23,13 +23,19 @@ def get_data(filename):
         data[solver] = dict(sorted_data)
     return data
 
+def souffle_to_dict(problems):
+    res = {}
+    for problem in problems:
+        res[problem] = get_souffle_avg(souffle_path + problem + f"/{i}.txt")
+    return res
+    
 def get_souffle_avg(problem):
     sum = 0
     for i in range(1,6):
-        sum += parse_souffle_data(souffle_path + problem + f"/{i}.txt")
+        sum += get_souffle_data(souffle_path + problem + f"/{i}.txt")
     return sum/5
 
-def parse_souffle_data(filename):
+def get_souffle_data(filename):
     with open(filename, "r") as file:
         lines = file.readlines()
     lines = lines[3:-1]
@@ -57,14 +63,15 @@ def plot(data):
     plt.show()
 
 def main():
-    '''
     semi_data = get_data(f"{path}\\result\\semi-naive\\hard-problem.json")
-    naive_data = get_data(f"{path}\\result\\naive\\hard-problem.json")
-    trie_solver_data = get_data(f"{path}\\result\\semi-naive\\trie-solver-reachable.json")
-    scc_reachable_data = get_data(f"{path}\\result\\semi-naive\\scc-reachable.json")
-    '''
-    #plot(scc_reachable_data)
-    print(get_souffle_avg("reachable"))
+    plot(semi_data)
+    # naive_data = get_data(f"{path}\\result\\naive\\hard-problem.json")
+    # trie_solver_data = get_data(f"{path}\\result\\semi-naive\\trie-solver-reachable.json")
+    # scc_reachable_data = get_data(f"{path}\\result\\semi-naive\\scc-reachable.json")
+    
+    # souffle_data = souffle_to_dict(["reachable", "clusters"])
+    
+    # plot(scc_reachable_data)
 
 if __name__ == "__main__":
     main()
