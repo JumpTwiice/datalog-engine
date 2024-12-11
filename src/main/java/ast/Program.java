@@ -68,7 +68,7 @@ public class Program {
                 "query=" + ((query == null) ? "": query.toString(this)) + "\n" +
                 "facts=\n\t" + Solver.formatSolution(facts, this).replace("\n", "\n\t") +
                 "\nrules=\n" +
-                rules.values().stream().map(ruleset -> ruleset.stream().map(r -> r.toString(this)).reduce("", (acc, cur) -> acc + "\n\t" + cur)).reduce("", (acc, cur) -> acc + "\n" + cur).substring(2) +
+                (rules.isEmpty() ? "" : rules.values().stream().map(ruleset -> ruleset.stream().map(r -> r.toString(this)).reduce("", (acc, cur) -> acc + "\n\t" + cur)).reduce("", (acc, cur) -> acc + "\n" + cur).substring(2)) +
 //                rules +
 //                ", query=" + query.toString(this) +
 //                ", idToVar=" + idToVar +

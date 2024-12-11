@@ -70,6 +70,12 @@ public class Transformer {
         if (p.query == null) {
             throw new IllegalArgumentException("Query was null");
         }
+//        Nothing to be done. Remove all rules
+        if(!p.rules.containsKey(p.query.pred)) {
+            new Program(p.facts, new HashMap<>(), p.query, p.idToVar, p.nextPred);
+            return p;
+        }
+
 
         var adorned = adornment(p);
         var adornedProgram = adorned.x();
@@ -81,25 +87,46 @@ public class Transformer {
             for (var r : rEntry.getValue()) {
                 var headAtom = (AdornedAtom) r.head;
                 var magicHead = magic(headAtom);
-                r.body.addFirst(magicHead);
+                if(!magicHead.ids.isEmpty()) {
+                    r.body.addFirst(magicHead);
+                }
+                ruleSet.add(new Rule(r.head, r.body));
                 ruleSet.add(new Rule(r.head, r.body));
                 var currentSip = sips.get(r);
                 for (var sipEntry : currentSip) {
                     ArrayList<Atom> body;
+                    var magicRightSide = magic(sipEntry.rightSide);
+                    if(magicRightSide.ids.isEmpty()) {
+                        continue;
+                    }
                     if (sipEntry.leftSide.contains(headAtom)) {
                         body = new ArrayList<>();
                         body.add(magicHead);
                         sipEntry.leftSide.stream().filter(x -> x != headAtom).forEach(body::add);
+//                        Avoid adding a clone rule
+                        if(body.size() == 1) {
+                            if(magicHead.pred == magicRightSide.pred && magicHead.isBoundArray.equals(magicRightSide.isBoundArray)) {
+                                var ruleIsCloneRule = true;
+                                for(var i = 0; i < magicHead.ids.size(); i++) {
+                                    if(magicHead.ids.get(i).isVar != magicRightSide.ids.get(i).isVar || magicHead.ids.get(i).value != magicRightSide.ids.get(i).value) {
+                                        ruleIsCloneRule = false;
+                                        break;
+                                    }
+                                }
+                                if(ruleIsCloneRule) {
+                                    continue;
+                                }
+                            }
+                        }
                     } else {
                         body = new ArrayList<>(sipEntry.leftSide);
                     }
-                    ruleSet.add(new Rule(magic(sipEntry.rightSide), body));
+                    ruleSet.add(new Rule(magicRightSide, body));
                 }
             }
         }
         var queryMagic = magic((AdornedAtom) adornedProgram.query);
         Program newProgram = new Program(p.facts, ruleMap, adornedProgram.query, adornedProgram.idToVar, adornedProgram.nextPred);
-//        changeFactsAndRulesToEDGFormat(newProgram);
         var renamed = renamePred(newProgram, queryMagic);
         changeFactsAndRulesToEDGFormat(renamed);
         return renamed;
@@ -124,21 +151,23 @@ public class Transformer {
             idToVar.put(newId, p.idToVar.get(factEntry.getKey()));
             newFacts.put(newId, factEntry.getValue());
         }
-//        Add the magicQuery as a fact
-        var magicQueryID = idCounter++;
-        Map<List<Boolean>, Long> newMap = new HashMap<>();
-        newMap.put(magicQuery.isBoundArray, magicQueryID);
+//        Add the magicQuery as a fact, if it is non-empty
+        if(!magicQuery.ids.isEmpty()) {
+            var magicQueryID = idCounter++;
+            Map<List<Boolean>, Long> newMap = new HashMap<>();
+            newMap.put(magicQuery.isBoundArray, magicQueryID);
 
-        Map<Boolean, Map<List<Boolean>, Long>> queryMagicMap = new HashMap<>();
-        queryMagicMap.put(true, newMap);
+            Map<Boolean, Map<List<Boolean>, Long>> queryMagicMap = new HashMap<>();
+            queryMagicMap.put(true, newMap);
 
-        adornedToNewId.put(magicQuery.pred, queryMagicMap);
-        idToVar.put(magicQueryID, magicQuery.generatePred(p));
+            adornedToNewId.put(magicQuery.pred, queryMagicMap);
+            idToVar.put(magicQueryID, magicQuery.generatePred(p));
 
-        Set<List<Long>> queryFactSet = new HashSet<>();
-        var constantsInQuery = magicQuery.ids.stream().map(x -> x.value).collect(Collectors.toCollection(ArrayList::new));
-        queryFactSet.add(constantsInQuery);
-        newFacts.put(magicQueryID, queryFactSet);
+            Set<List<Long>> queryFactSet = new HashSet<>();
+            var constantsInQuery = magicQuery.ids.stream().map(x -> x.value).collect(Collectors.toCollection(ArrayList::new));
+            queryFactSet.add(constantsInQuery);
+            newFacts.put(magicQueryID, queryFactSet);
+        }
 
 //        Handle the rules
         for (var ruleEntry : p.rules.entrySet()) {
@@ -292,14 +321,14 @@ public class Transformer {
 
 
 //                Do not annotate or create SIP for EDB facts
-                if (!p.facts.containsKey(next.pred)) {
+                if (p.rules.containsKey(next.pred)) {
                     inducedAtom.isBoundArray = next.ids.stream().map(x1 -> !x1.isVar || bound.contains(x1.value)).collect(Collectors.toCollection(ArrayList::new));
                     var newEntry = new SIPEntry(dependencies, inducedAtom);
                     entries.add(newEntry);
                 }
 
             } else if (!foundNewEDB) {
-                inducedAtom.isBoundArray = next.ids.stream().map(x -> true).collect(Collectors.toCollection(ArrayList::new));
+                inducedAtom.isBoundArray = next.ids.stream().map(x -> false).collect(Collectors.toCollection(ArrayList::new));
             }
 
             if (inducedAtom.isBoundArray != null) {
@@ -310,7 +339,6 @@ public class Transformer {
                     workListSet.add(inducedAtom.isBoundArray);
                 }
             }
-
             explanationOfNewlyBound.add(inducedAtom);
             next.ids.stream()
                     .filter(x -> x.isVar && !bound.contains(x.value))

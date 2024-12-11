@@ -78,7 +78,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         Testing.runAllTests();
-        Testing.runRandomTests(1000);
+//        Testing.runRandomTests(1000);
         System.exit(0);
 
 

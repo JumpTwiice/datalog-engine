@@ -1,13 +1,9 @@
 package ast;
 
-import common.Tuple;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class Atom {
-    public Long pred;
+    public long pred;
     public List<Term> ids;
     public int[][] sameNess;
     public boolean[] constBool;
