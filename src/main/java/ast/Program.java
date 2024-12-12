@@ -3,6 +3,10 @@ package ast;
 import solver.Solver;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 public class Program {
     public Map<Long, Set<List<Long>>> facts;
@@ -24,14 +28,15 @@ public class Program {
         }
         var id = nextPred++;
         ArrayList<Atom> body = new ArrayList<>();
-        var newQuery = new Atom(id, query.ids);
+        var queryClone = new Atom(id, query.ids);
         idToVar.put(id, idToVar.get(query.pred) + "_query");
         body.add(query);
-        var newRule = new Rule(newQuery, body);
+        var newRule = new Rule(queryClone, body);
         var ruleSet = new ArrayList<Rule>();
         ruleSet.add(newRule);
         rules.put(id, ruleSet);
-        this.query = newQuery;
+//        Should just return all values of query predicate.
+        this.query = new Atom(queryClone.pred, LongStream.range(0, queryClone.ids.size()).mapToObj(x -> new Term(x, false)).collect(Collectors.toCollection(ArrayList::new)));
     }
 
     public void setupForTrieSolver() {
