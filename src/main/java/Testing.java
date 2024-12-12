@@ -362,7 +362,7 @@ public class Testing {
         }
 
         public static void test1() throws Exception {
-            var p = Main.fileToProgram("test1.datalog");
+            var p = ProgramGen.fileToProgram("test1.datalog");
             p.setupForSimpleSolver();
             var solver = new SimpleSolver(p);
             solver.naiveEval();
@@ -378,7 +378,7 @@ public class Testing {
         }
 
         public static void test3() throws Exception {
-            var p = Main.fileToProgram("test3.datalog");
+            var p = ProgramGen.fileToProgram("test3.datalog");
             p.setupForSimpleSolver();
             var solver = new SimpleSolver(p);
             solver.naiveEval();
@@ -392,7 +392,7 @@ public class Testing {
         }
 
         public static void test4() throws Exception {
-            var p = Main.fileToProgram("test4.datalog");
+            var p = ProgramGen.fileToProgram("test4.datalog");
             p.setupForSimpleSolver();
             var solver = new SimpleSolver(p);
             solver.naiveEval();
@@ -408,7 +408,7 @@ public class Testing {
         }
 
         public static void test5() throws Exception {
-            var p = Main.fileToProgram("test5.datalog");
+            var p = ProgramGen.fileToProgram("test5.datalog");
             p.setupForSimpleSolver();
             var solver = new SimpleSolver(p);
             solver.naiveEval();
@@ -424,7 +424,7 @@ public class Testing {
         }
 
         public static void test6() throws Exception {
-            var p = Main.fileToProgram("test6.datalog");
+            var p = ProgramGen.fileToProgram("test6.datalog");
             p.setupForSimpleSolver();
             var solver = new SimpleSolver(p);
             solver.naiveEval();

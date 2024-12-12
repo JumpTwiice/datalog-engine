@@ -1,0 +1,5 @@
+reachable_bf_m_1(0).
+
+edge(X0,X1)            :- edge(X1,X0).
+reachable_bf_2(X0, X1) :- reachable_bf_m_1(X0), edge(X0, X1).
+reachable_bf_2(X0, X1) :- reachable_bf_m_1(X0), reachable_bf_2(X0, X2), edge(X2, X1).

@@ -1,0 +1,16 @@
+reachable_bf_m_1(0).
+
+edge_bf_2(X0, X1) :- edge_bf_m_3(X0), edge_fb_4(X1, X0).
+edge_bf_2(X0, X1) :- edge_bf_m_3(X0), edge_fact_0(X0, X1).
+
+edge_bf_m_3(X1) :- edge_fb_m_5(X1).
+edge_bf_m_3(X0) :- reachable_bf_m_1(X0).
+edge_bf_m_3(X2) :- reachable_bf_m_1(X0), reachable_bf_6(X0, X2).
+
+edge_fb_4(X0, X1) :- edge_fb_m_5(X1), edge_bf_2(X1, X0).
+edge_fb_4(X0, X1) :- edge_fb_m_5(X1), edge_fact_0(X0, X1).
+
+edge_fb_m_5(X0) :- edge_bf_m_3(X0).
+
+reachable_bf_6(X0, X1) :- reachable_bf_m_1(X0), edge_bf_2(X0, X1).
+reachable_bf_6(X0, X1) :- reachable_bf_m_1(X0), reachable_bf_6(X0, X2), edge_bf_2(X2, X1).

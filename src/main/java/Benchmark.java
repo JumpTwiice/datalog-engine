@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
 public class Benchmark {
-    private static final String projectPath = System.getProperty("user.dir") + "/src/test/benchmark/";
+    public static final String benchmarkPath = System.getProperty("user.dir") + "/src/test/benchmark/";
     private static final String resPath = System.getProperty("user.dir") + "/src/main/resources/result/";
     private static final int numTrials = 5;
     private static final int timeOutSeconds = 60;
@@ -32,10 +32,46 @@ public class Benchmark {
                     1, max, 1, true);
         } else if (args[0].equals("hard-problem")) {
             Solv[] solvers = new Solv[]{Solv.TRIE, Solv.SIMPLE};
-            benchmarkHardProblem("hard-problem.json", solvers, ProgramGen::hardProblem, 30, 130, 10, true);
-            benchmarkHardProblem("hard-problem.json", solvers, ProgramGen::hardProblem, 30, 130, 10, false);
+            benchmarkHardProblem("hard-problem.json", solvers, ProgramGen::reachableProblem, 30, 130, 10, true);
+            benchmarkHardProblem("hard-problem.json", solvers, ProgramGen::reachableProblem, 30, 130, 10, false);
+        } else if (args[0].equals("magic-sets")) {
+            String[] programs = new String[]{
+                    "reachable-magic", "reachable-magic2", "reachable-original"
+            };
+//            benchmarkMagicSetsOnPrograms(programs, defaultSolver, true);
+            benchmarkMagicSetsOnPrograms(programs, defaultSolver, false);
         }
         executor.shutdownNow();
+    }
+
+    private static void benchmarkMagicSetsOnPrograms(String[] programs, Solv solver, boolean withClusters) throws Exception {
+        JSONObject jsonObject = new JSONObject();
+        for (String program : programs) {
+            String filename = program + ".datalog";
+            Program p;
+            if (withClusters) {
+                int n = 10000;
+                p = ProgramGen.clusterProblemFromTemplate("magic-sets/" + filename, n/3, 3);
+            } else {
+                int n = 2000;
+                p = ProgramGen.reachableProblemFromTemplate("magic-sets/" + filename, n);
+            }
+            p.setupForTrieSolver();
+
+            System.out.println((withClusters ? "Clusters" : "Normal") + " for " + filename + "...");
+            System.out.println("----------------------------");
+            System.out.println("Warming up...");
+
+            for (int i = 0; i < 5; i++) {
+//                var x = runWithSolverAndTimeOut(solver, p, 10, true);
+            }
+
+            System.out.println("Benchmarking...\n");
+            long avg = getAvgFromTrials(solver, p, true, true);
+            jsonObject.put(program, avg);
+        }
+        String outputFileName = (withClusters ? "clusters" : "reachable") + "-magic-sets.json";
+        writeJSONFile(true, outputFileName, jsonObject);
     }
 
     private static void benchmarkHardProblem(String outputFileName, Solv[] solvers, Function<Integer, Program> func,
@@ -65,10 +101,7 @@ public class Benchmark {
         JSONObject jsonObject = new JSONObject();
         for (String program : programs) {
             String filename = program + ".datalog";
-            var is = new FileInputStream(projectPath + filename);
-            var parser = new Parser(is);
-            var p = parser.parse();
-            is.close();
+            var p = ProgramGen.fileToProgram(benchmarkPath + filename);
 
             System.out.println("Profile for " + filename + "...");
             System.out.println("----------------------------");
@@ -145,6 +178,8 @@ public class Benchmark {
         var time = System.currentTimeMillis();
         Map<Long, ?> x = withSemi ? solver.semiNaiveEval() : solver.naiveEval();
         time = System.currentTimeMillis() - time;
+        System.out.println();
+        System.out.println(Solver.formatSolution(solver.solutionsToPredMap(), p));
         return time;
     }
 }

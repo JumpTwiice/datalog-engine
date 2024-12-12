@@ -1,14 +1,6 @@
-import ast.Program;
 import solver.*;
 
-import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 /*
 let n = 100;
@@ -68,12 +60,6 @@ res;
 
 public class Main {
     public static String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
-
-    public static Program fileToProgram(String name) throws Exception {
-        var is = new FileInputStream(projectPath + name);
-        return new Parser(is).parse();
-
-    }
 
     public static void main(String[] args) throws Exception {
 //        Testing.runAllTests();
