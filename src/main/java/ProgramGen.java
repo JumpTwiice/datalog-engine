@@ -8,10 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class ProgramGen {
-    public static void main(String[] args) {
-        System.out.println(cartesianProductProblem(1000));
-    }
-
     public static Program reachableProblem(int n) throws RuntimeException {
         StringBuilder res = new StringBuilder();
         createChainEdgeFacts(n, res);
@@ -49,7 +45,7 @@ public class ProgramGen {
         }
     }
 
-    public static String cartesianProductProblem(int numFacts) {
+    public static Program cartesianProductProblem(int numFacts) {
         StringBuilder res = new StringBuilder();
         for (int i = 0; i < numFacts/2; i++) {
             res.append("p(").append(i).append(",").append(i+1).append(").");
@@ -57,7 +53,7 @@ public class ProgramGen {
         }
         res.append("\nr(X,Y,Z,W) :- p(X,Y), q(Z,W).\n");
         res.append("?-r(1,Y,Z,W)");
-        return res.toString();
+        return parseStringToProgram(res.toString());
     }
 
     public static Program reachableProblemFromTemplate(String filename, int n) {

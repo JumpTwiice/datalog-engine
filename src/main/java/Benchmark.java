@@ -13,33 +13,37 @@ public class Benchmark {
     private static final String resPath = System.getProperty("user.dir") + "/src/main/resources/result/";
     private static final int numTrials = 5;
     private static final int timeOutSeconds = 60;
-    private static ExecutorService executor;
+    private static final ExecutorService executor = Executors.newFixedThreadPool(8);;
     private static final boolean verbose = false;
     private static final Solv defaultSolver = Solv.SCC_TRIE;
 
     public static void main(String[] args) throws Exception {
-        executor = Executors.newFixedThreadPool(8);
-        if (args[0].equals("benchmark-solver")) {
-            String[] programs = new String[]{"cartesian"};
-            benchmarkSolverOnPrograms(programs, defaultSolver, true);
-            benchmarkSolverOnPrograms(programs, defaultSolver, false);
-        } else if (args[0].equals("reachable-scc")) {
-            Solv[] solvers = new Solv[]{Solv.TRIE, Solv.SCC_TRIE};
-            int max = 16;
-            int nodes = (int) Math.pow(2, max);
-            benchmarkHardProblem("scc-reachable.json", solvers, x
-                    -> ProgramGen.reachableSCCProblem(nodes, x),
-                    1, max, 1, true);
-        } else if (args[0].equals("hard-problem")) {
-            Solv[] solvers = new Solv[]{Solv.TRIE, Solv.SIMPLE};
-            benchmarkHardProblem("hard-problem.json", solvers, ProgramGen::reachableProblem, 30, 130, 10, true);
-            benchmarkHardProblem("hard-problem.json", solvers, ProgramGen::reachableProblem, 30, 130, 10, false);
-        } else if (args[0].equals("magic-sets")) {
-            String[] programs = new String[]{
-                    "reachable-magic", "reachable-magic2", "reachable-original"
-            };
-            benchmarkMagicSetsOnPrograms(programs, defaultSolver, true);
-            benchmarkMagicSetsOnPrograms(programs, defaultSolver, false);
+        switch (args[0]) {
+            case "benchmark-solver" -> {
+                String[] programs = new String[]{"cartesian", "reachable"};
+                benchmarkSolverOnPrograms(programs, defaultSolver, true);
+                benchmarkSolverOnPrograms(programs, defaultSolver, false);
+            }
+            case "reachable-scc" -> {
+                Solv[] solvers = new Solv[]{Solv.TRIE, Solv.SCC_TRIE};
+                int max = 16;
+                int nodes = (int) Math.pow(2, max);
+                benchmarkProblem("scc-reachable.json", solvers, x
+                                -> ProgramGen.reachableSCCProblem(nodes, x),
+                        1, max, 1, true);
+            }
+            case "reachable-problem" -> {
+                Solv[] solvers = new Solv[]{Solv.TRIE, Solv.SIMPLE};
+                benchmarkProblem("reachable.json", solvers, ProgramGen::reachableProblem, 30, 130, 10, true);
+                benchmarkProblem("reachable.json", solvers, ProgramGen::reachableProblem, 30, 130, 10, false);
+            }
+            case "magic-sets" -> {
+                String[] programs = new String[]{
+                        "reachable-magic", "reachable-magic2", "reachable-original"
+                };
+                benchmarkMagicSetsOnPrograms(programs, defaultSolver, true);
+                benchmarkMagicSetsOnPrograms(programs, defaultSolver, false);
+            }
         }
         executor.shutdownNow();
     }
@@ -75,14 +79,14 @@ public class Benchmark {
         writeJSONFile(true, outputFileName, jsonObject);
     }
 
-    private static void benchmarkHardProblem(String outputFileName, Solv[] solvers, Function<Integer, Program> func,
-                                             int min, int max, int step, boolean withSemi) throws Exception {
+    private static void benchmarkProblem(String outputFileName, Solv[] solvers, Function<Integer, Program> problem,
+                                         int min, int max, int step, boolean withSemi) throws Exception {
         JSONObject jsonObject = new JSONObject();
         for (Solv solver : solvers) {
             JSONObject jsonObjectSolver = new JSONObject();
             jsonObject.put(solver.toString(), jsonObjectSolver);
             for (int n = min; n <= max; n += step) {
-                Program p = func.apply(n);
+                Program p = problem.apply(n);
                 long avg = getAvgFromTrials(solver, p, withSemi, false);
                 System.out.println("(" + solver + ") " + "Average time (n=" + n + "): " + avg + " ms");
                 jsonObjectSolver.put(n, avg);
@@ -176,10 +180,10 @@ public class Benchmark {
             case SCC_TRIE -> solver = new SCCSolverDecorator<>(p, new TrieSolver(p));
             default -> throw new Exception("Impossible");
         }
-        var time = System.currentTimeMillis();
+        var startTime = System.currentTimeMillis();
         Map<Long, ?> x = withSemi ? solver.semiNaiveEval() : solver.naiveEval();
-        time = System.currentTimeMillis() - time;
-        return time;
+        var endTime = System.currentTimeMillis();
+        return endTime - startTime;
     }
 }
 
