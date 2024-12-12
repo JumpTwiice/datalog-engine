@@ -8,7 +8,7 @@ public class ProgramGen {
         System.out.println(cartesianProductProblem(1000));
     }
 
-    public static Program hardProblem(int n) throws Exception {
+    public static Program hardProblem(int n) throws RuntimeException {
         var res = "";
         for (var i = 0; i < n; i++) {
             res += "edge(" + i + "," + (i + 1) + ").";
@@ -20,7 +20,7 @@ public class ProgramGen {
         return parseStringToProgram(res);
     }
 
-    public static Program clusterProblem(int numClusters, int clusterSize) throws Exception {
+    public static Program clusterProblem(int numClusters, int clusterSize) throws RuntimeException {
         StringBuilder res = new StringBuilder();
         for (int i = 0; i < numClusters; i++) {
             for (int j = 0; j < clusterSize; j++) {

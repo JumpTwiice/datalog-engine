@@ -23,13 +23,17 @@ public class Benchmark {
             String[] programs = new String[]{"cartesian"};
             benchmarkSolverOnPrograms(programs, defaultSolver, true);
             benchmarkSolverOnPrograms(programs, defaultSolver, false);
-        } else if (args[0].equals("benchmark-problem")) {
+        } else if (args[0].equals("reachable-scc")) {
             Solv[] solvers = new Solv[]{Solv.TRIE, Solv.SCC_TRIE};
             int max = 16;
             int nodes = (int) Math.pow(2, max);
             benchmarkHardProblem("scc-reachable.json", solvers, x
                     -> ProgramGen.reachableSCCProblem(nodes, x),
-                    1, 16, 1, true);
+                    1, max, 1, true);
+        } else if (args[0].equals("hard-problem")) {
+            Solv[] solvers = new Solv[]{Solv.TRIE, Solv.SIMPLE};
+            benchmarkHardProblem("hard-problem.json", solvers, ProgramGen::hardProblem, 30, 130, 10, true);
+            benchmarkHardProblem("hard-problem.json", solvers, ProgramGen::hardProblem, 30, 130, 10, false);
         }
         executor.shutdownNow();
     }
@@ -42,7 +46,7 @@ public class Benchmark {
             jsonObject.put(solver.toString(), jsonObjectSolver);
             for (int n = min; n <= max; n += step) {
                 Program p = func.apply(n);
-                long avg = getAvgFromTrials(solver, withSemi, p);
+                long avg = getAvgFromTrials(solver, p, withSemi, false);
                 System.out.println("(" + solver + ") " + "Average time (n=" + n + "): " + avg + " ms");
                 jsonObjectSolver.put(n, avg);
             }
@@ -75,18 +79,23 @@ public class Benchmark {
             }
 
             System.out.println("Benchmarking...");
-            long avg = getAvgFromTrials(solver, withSemi, p);
+            long avg = getAvgFromTrials(solver, p, withSemi, true);
             jsonObject.put(program, avg);
         }
         String outputFileName = solver.toFileName() + ".json";
         writeJSONFile(withSemi, outputFileName, jsonObject);
     }
 
-    private static long getAvgFromTrials(Solv solver, boolean withSemi, Program p) throws Exception {
+    private static long getAvgFromTrials(Solv solver, Program p, boolean withSemi, boolean withTimeout) throws Exception {
         int trialsSucceeded = 0;
         long sum = 0;
         for (int i = 0; i < numTrials; i++) {
-            var time = runWithSolverAndTimeOut(solver, p, timeOutSeconds, withSemi);
+            long time;
+            if (withTimeout) {
+                time = runWithSolverAndTimeOut(solver, p, timeOutSeconds, withSemi);
+            } else {
+                time = runWithSolver(solver, p, withSemi);
+            }
             if (time == -1L) {
                 if (trialsSucceeded == 0)
                     sum = -1L;

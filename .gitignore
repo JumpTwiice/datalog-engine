@@ -5,3 +5,4 @@ target/
 /src/main/resources/souffle/output/
 /src/main/resources/souffle/profiles/
 /src/main/resources/souffle/result/
+datalog-engine.iml
