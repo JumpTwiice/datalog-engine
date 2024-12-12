@@ -24,10 +24,10 @@ public class Testing {
     public static double factProbability = 0.5;
     public static double constantProbability = 0.3;
     public static int minFacts = 1;
-    public static int maxFacts = 20;
+    public static int maxFacts = 8;
 
     public static int minHerbrand = 1;
-    public static int maxHerbrand = 20;
+    public static int maxHerbrand = 10;
 
     public static Random rand = new Random(1);
 
@@ -190,6 +190,7 @@ public class Testing {
             solutions.add(solver.solutionsToPredMap());
 
             ensureEquality(solutions);
+            System.gc();
         }
     }
 

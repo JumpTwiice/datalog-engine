@@ -91,7 +91,6 @@ public class Transformer {
                     r.body.addFirst(magicHead);
                 }
                 ruleSet.add(new Rule(r.head, r.body));
-                ruleSet.add(new Rule(r.head, r.body));
                 var currentSip = sips.get(r);
                 for (var sipEntry : currentSip) {
                     ArrayList<Atom> body;
@@ -101,7 +100,9 @@ public class Transformer {
                     }
                     if (sipEntry.leftSide.contains(headAtom)) {
                         body = new ArrayList<>();
-                        body.add(magicHead);
+                        if(!magicHead.ids.isEmpty()) {
+                            body.add(magicHead);
+                        }
                         sipEntry.leftSide.stream().filter(x -> x != headAtom).forEach(body::add);
 //                        Avoid adding a clone rule
                         if(body.size() == 1) {

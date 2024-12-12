@@ -59,7 +59,7 @@ public class Atom {
     }
 
     public static String formatPredicate(long pred, Program p) {
-        return p.idToVar.get(pred) + "@" + pred;
+        return p.idToVar.get(pred) + "_" + pred;
     }
 
     public String toString(Program p) {
