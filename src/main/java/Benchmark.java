@@ -38,7 +38,7 @@ public class Benchmark {
             String[] programs = new String[]{
                     "reachable-magic", "reachable-magic2", "reachable-original"
             };
-//            benchmarkMagicSetsOnPrograms(programs, defaultSolver, true);
+            benchmarkMagicSetsOnPrograms(programs, defaultSolver, true);
             benchmarkMagicSetsOnPrograms(programs, defaultSolver, false);
         }
         executor.shutdownNow();
@@ -51,9 +51,10 @@ public class Benchmark {
             Program p;
             if (withClusters) {
                 int n = 10000;
-                p = ProgramGen.clusterProblemFromTemplate("magic-sets/" + filename, n/3, 3);
+                int clusterSize = 100;
+                p = ProgramGen.clusterProblemFromTemplate("magic-sets/" + filename, n/clusterSize, clusterSize);
             } else {
-                int n = 2000;
+                int n = 1000;
                 p = ProgramGen.reachableProblemFromTemplate("magic-sets/" + filename, n);
             }
             p.setupForTrieSolver();
@@ -63,7 +64,7 @@ public class Benchmark {
             System.out.println("Warming up...");
 
             for (int i = 0; i < 5; i++) {
-//                var x = runWithSolverAndTimeOut(solver, p, 10, true);
+                var x = runWithSolverAndTimeOut(solver, p, 10, true);
             }
 
             System.out.println("Benchmarking...\n");
@@ -178,8 +179,6 @@ public class Benchmark {
         var time = System.currentTimeMillis();
         Map<Long, ?> x = withSemi ? solver.semiNaiveEval() : solver.naiveEval();
         time = System.currentTimeMillis() - time;
-        System.out.println();
-        System.out.println(Solver.formatSolution(solver.solutionsToPredMap(), p));
         return time;
     }
 }
