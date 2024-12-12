@@ -11,18 +11,17 @@ import java.util.function.Function;
 public class Benchmark {
     public static final String benchmarkPath = System.getProperty("user.dir") + "/src/test/benchmark/";
     private static final String resPath = System.getProperty("user.dir") + "/src/main/resources/result/";
-    private static final int numTrials = 5;
+    private static final int numTrials = 10;
     private static final int timeOutSeconds = 60;
     private static final ExecutorService executor = Executors.newFixedThreadPool(8);;
-    private static final boolean verbose = false;
+    private static final boolean verbose = true;
     private static final Solv defaultSolver = Solv.SCC_TRIE;
 
     public static void main(String[] args) throws Exception {
         switch (args[0]) {
             case "benchmark-solver" -> {
-                String[] programs = new String[]{"cartesian", "reachable"};
+                String[] programs = new String[]{"cartesian", "reachable", "reachable-flipped", "clusters"};
                 benchmarkSolverOnPrograms(programs, defaultSolver, true);
-                benchmarkSolverOnPrograms(programs, defaultSolver, false);
             }
             case "reachable-scc" -> {
                 Solv[] solvers = new Solv[]{Solv.TRIE, Solv.SCC_TRIE};
@@ -106,14 +105,14 @@ public class Benchmark {
         JSONObject jsonObject = new JSONObject();
         for (String program : programs) {
             String filename = program + ".datalog";
-            var p = ProgramGen.fileToProgram(benchmarkPath + filename);
+            var p = ProgramGen.fileToProgram("benchmark/" + filename);
 
             System.out.println("Profile for " + filename + "...");
             System.out.println("----------------------------");
             System.out.println("Warming up...");
 
-            for (int i = 0; i < 5; i++) {
-                var x = runWithSolverAndTimeOut(solver, p, 5, withSemi);
+            for (int i = 0; i < numTrials; i++) {
+                var x = runWithSolverAndTimeOut(solver, p, 10, withSemi);
             }
 
             System.out.println("Benchmarking...");

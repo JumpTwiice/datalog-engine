@@ -26,10 +26,10 @@ def get_all_solver_data(filename):
     data = load_json_data(filename)
     return {solver: filter_and_sort_data(data[solver]) for solver in data.keys()}
 
-def get_souffle_average(problem_name):
-    """Compute the average of 5 Soufflé runs for a given problem"""
-    results = [get_souffle_data(SOUFFLE_PATH / problem_name / f"{i}.txt") for i in range(1, 6)]
-    return sum(results) / len(results)
+def get_souffle_average(problem_name, num):
+    """Compute the average of 'num' Soufflé runs for a given problem"""
+    results = [get_souffle_data(SOUFFLE_PATH / problem_name / f"{i}.txt") for i in range(1, num+1)]
+    return sum(results) / len(results) * 1000
 
 def get_souffle_data(filename):
     """Extract the total runtime from a single Soufflé run"""
@@ -57,7 +57,6 @@ def semi_vs_naive(semi_solver, naive_solver):
         f"{semi_solver} with Semi-Naive": semi_data,
         f"{naive_solver} with Naive": naive_data
     }
-    print(data)
     plot(data, "Reachable - Naive vs Semi-Naive Evaluation", "No. of Edge Facts", np.arange(30, 131, 10))
 
 def plot(data, title, x_label, x_ticks):
@@ -75,9 +74,11 @@ def plot(data, title, x_label, x_ticks):
     plt.show()
 
 def main():
-    # souffle_data = souffle_to_dict(["reachable", "clusters"])
+    print("Soufflé reachable: " + str(get_souffle_average("reachable", 10)) + " ms")
+    print("Soufflé reachable-flipped: " + str(get_souffle_average("reachable-flipped", 10)) + " ms")
+    print("Soufflé cartesian: " + str(get_souffle_average("cartesian", 10)) + " ms")
 
-    # semi_vs_naive("Simple Solver", "Trie Solver")
+    semi_vs_naive("Simple Solver", "Trie Solver")
     
     scc_reachable_data = get_all_solver_data(RESULT_PATH / "semi-naive" / "scc-reachable.json")
     plot(scc_reachable_data, "SCC-Reachable with Semi-Naive", "Depth", np.arange(1, 17, 1))

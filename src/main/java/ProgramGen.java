@@ -107,9 +107,9 @@ public class ProgramGen {
         }
     }
 
-    public static Program fileToProgram(String name) throws RuntimeException {
+    public static Program fileToProgram(String filename) throws RuntimeException {
         try {
-            var is = new FileInputStream(Main.projectPath + name);
+            var is = new FileInputStream(Main.testPath + filename);
             return new Parser(is).parse();
         } catch (Exception e) {
             throw new RuntimeException(e);

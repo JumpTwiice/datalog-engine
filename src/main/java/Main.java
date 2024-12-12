@@ -59,7 +59,7 @@ res;
 */
 
 public class Main {
-    public static String projectPath = System.getProperty("user.dir") + "\\src\\test\\";
+    public static String testPath = System.getProperty("user.dir") + "/src/test/";
 
     public static void main(String[] args) throws Exception {
 //        Testing.runAllTests();
@@ -74,7 +74,7 @@ public class Main {
 //        System.exit(0);
 
 //        var is = new FileInputStream(projectPath + "test1.datalog");
-        var is = new FileInputStream(projectPath + "test2.datalog");
+        var is = new FileInputStream(testPath + "test2.datalog");
 //        var is = new FileInputStream(projectPath + "test3.datalog");
 //        var is = new FileInputStream(projectPath + "test4.datalog");
 //        var is = new FileInputStream(projectPath + "test5.datalog");
