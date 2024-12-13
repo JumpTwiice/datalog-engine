@@ -7,6 +7,8 @@ BASE_PATH = Path(__file__).parent.parent.absolute()
 RESULT_PATH = BASE_PATH / "result"
 SOUFFLE_PATH = BASE_PATH / "souffle" / "result" 
 
+plt.rcParams["text.usetex"] = True
+
 def load_json_data(filename):
     """Load JSON data from file"""
     with open(filename, "r") as file:
@@ -29,13 +31,13 @@ def get_all_solver_data(filename):
 def get_souffle_average(problem_name, num):
     """Compute the average of 'num' Soufflé runs for a given problem"""
     results = [get_souffle_data(SOUFFLE_PATH / problem_name / f"{i}.txt") for i in range(1, num+1)]
-    return sum(results) / len(results) * 1000
+    return sum(results) / len(results)
 
 def get_souffle_data(filename):
     """Extract the total runtime from a single Soufflé run"""
     with open(filename, "r") as file:
         lines = file.readlines()[3:-1] 
-    return sum(float(line.strip().partition("s")[0]) for line in lines)
+    return sum(float(line.strip().partition("s")[0]) for line in lines) * 1000
 
 # def souffle_to_dict(problems):
 #     res = {}
@@ -48,16 +50,26 @@ def normalize(data, f):
     for solver in data:
         data[solver] = {k: v / f(int(k)) for k, v in data[solver].items()}
 
-def semi_vs_naive(semi_solver, naive_solver):
+def semi_vs_naive(solver, filename):
     """Compare semi-naive and naive solvers"""
-    semi_data = get_all_solver_data(RESULT_PATH / "semi-naive" / "hard-problem.json")[semi_solver]
-    naive_data = get_all_solver_data(RESULT_PATH / "naive" / "hard-problem.json")[naive_solver]
+    semi_data = get_all_solver_data(RESULT_PATH / "semi-naive" / filename)[solver]
+    naive_data = get_all_solver_data(RESULT_PATH / "naive" / filename)[solver]
     
     data = {
-        f"{semi_solver} with Semi-Naive": semi_data,
-        f"{naive_solver} with Naive": naive_data
+        r"\\textsc{" + solver + r"} with Semi-Naive": semi_data,
+        r"\\textsc{" + solver + r"} with Naive": naive_data
     }
-    plot(data, "Reachable - Naive vs Semi-Naive Evaluation", "No. of Edge Facts", np.arange(30, 131, 10))
+    return data
+
+def scc_trie_solver_semi_vs_naive():
+    reach_data = semi_vs_naive("SCC Trie Solver", "default-reachable.json")
+    clusters_data = semi_vs_naive("SCC Trie Solver", "default-clusters.json")
+    reach_min = np.min(reach_data.values())
+    reach_max = np.max(reach_data.values())
+    clusters_min = np.min(clusters_data.values())
+    clusters_max = np.max(clusters_data.values())
+    plot(reach_data, r"\\textsc{Sequence} - Naive vs Semi-naive", r"No. of \\texttt{edge} EDB Facts", np.arange(reach_min, reach_max, 10))
+    plot(reach_data, r"\\textsc{Clusters} - Naive vs Semi-naive", r"No. of \\texttt{edge} EDB Facts", np.arange(clusters_min, clusters_max, 100))
 
 def plot(data, title, x_label, x_ticks):
     colors = ["red", "blue", "green", "purple"]
@@ -74,17 +86,19 @@ def plot(data, title, x_label, x_ticks):
     plt.show()
 
 def main():
+    scc_trie_solver_semi_vs_naive()
+
+    print("Soufflé cartesian: " + str(get_souffle_average("cartesian", 10)) + " ms")
     print("Soufflé reachable: " + str(get_souffle_average("reachable", 10)) + " ms")
     print("Soufflé reachable-flipped: " + str(get_souffle_average("reachable-flipped", 10)) + " ms")
-    print("Soufflé cartesian: " + str(get_souffle_average("cartesian", 10)) + " ms")
 
-    semi_vs_naive("Simple Solver", "Trie Solver")
+    #semi_vs_naive("Simple Solver", "Trie Solver")
     
     scc_reachable_data = get_all_solver_data(RESULT_PATH / "semi-naive" / "scc-reachable.json")
-    plot(scc_reachable_data, "SCC-Reachable with Semi-Naive", "Depth", np.arange(1, 17, 1))
+    plot(scc_reachable_data, r"\\textsc{SCC-Reachable} - Semi-Naive Evaluation", r"Depth $i$", np.arange(1, 17, 1))
 
-    naive_reachable_data = get_all_solver_data(RESULT_PATH / "naive" / "hard-problem.json")
-    plot(naive_reachable_data, "Reachable - Naive Evaluation", "No. of Edge Facts", np.arange(30, 131, 10))
+    semi_reachable_data = get_all_solver_data(RESULT_PATH / "semi-naive" / "hard-problem.json")
+    plot(semi_reachable_data, r"\\textsc{Sequence} - Semi-Naive Evaluation", r"No. of \\texttt{edge} EDB Facts", np.arange(30, 131, 10))
 
 if __name__ == "__main__":
     main()

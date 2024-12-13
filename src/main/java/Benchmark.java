@@ -11,10 +11,10 @@ import java.util.function.Function;
 public class Benchmark {
     public static final String benchmarkPath = System.getProperty("user.dir") + "/src/test/benchmark/";
     private static final String resPath = System.getProperty("user.dir") + "/src/main/resources/result/";
-    private static final int numTrials = 10;
-    private static final int timeOutSeconds = 60;
+    private static final int numTrials = 5;
+    private static final int timeOutSeconds = 30;
     private static final ExecutorService executor = Executors.newFixedThreadPool(8);;
-    private static final boolean verbose = true;
+    private static final boolean verbose = false;
     private static final Solv defaultSolver = Solv.SCC_TRIE;
 
     public static void main(String[] args) throws Exception {
@@ -29,12 +29,12 @@ public class Benchmark {
                 int nodes = (int) Math.pow(2, max);
                 benchmarkProblem("scc-reachable.json", solvers, x
                                 -> ProgramGen.reachableSCCProblem(nodes, x),
-                        1, max, 1, true);
+                        1, max, 1, true, false);
             }
             case "reachable-problem" -> {
                 Solv[] solvers = new Solv[]{Solv.TRIE, Solv.SIMPLE};
-                benchmarkProblem("reachable.json", solvers, ProgramGen::reachableProblem, 30, 130, 10, true);
-                benchmarkProblem("reachable.json", solvers, ProgramGen::reachableProblem, 30, 130, 10, false);
+                benchmarkProblem("reachable.json", solvers, ProgramGen::reachableProblem, 30, 130, 10, true, true);
+                benchmarkProblem("reachable.json", solvers, ProgramGen::reachableProblem, 30, 130, 10, false, true);
             }
             case "magic-sets" -> {
                 String[] programs = new String[]{
@@ -42,6 +42,13 @@ public class Benchmark {
                 };
                 benchmarkMagicSetsOnPrograms(programs, defaultSolver, true);
                 benchmarkMagicSetsOnPrograms(programs, defaultSolver, false);
+            }
+            case "benchmark-problems" -> {
+                Solv[] solvers = new Solv[]{defaultSolver};
+                benchmarkProblem("default-clusters.json", solvers, x -> ProgramGen.clusterProblem(x, 10), 1000, 5000, 100, true, false);
+                benchmarkProblem("default-clusters.json", solvers, x -> ProgramGen.clusterProblem(x, 10), 1000, 5000, 100, false, false);
+                benchmarkProblem("default-reachable.json", solvers, ProgramGen::reachableProblem, 100, 500, 10, true, false);
+                benchmarkProblem("default-reachable.json", solvers, ProgramGen::reachableProblem, 100, 500, 10, false, false);
             }
         }
         executor.shutdownNow();
@@ -79,14 +86,14 @@ public class Benchmark {
     }
 
     private static void benchmarkProblem(String outputFileName, Solv[] solvers, Function<Integer, Program> problem,
-                                         int min, int max, int step, boolean withSemi) throws Exception {
+                                         int min, int max, int step, boolean withSemi, boolean withTimeout) throws Exception {
         JSONObject jsonObject = new JSONObject();
         for (Solv solver : solvers) {
             JSONObject jsonObjectSolver = new JSONObject();
             jsonObject.put(solver.toString(), jsonObjectSolver);
             for (int n = min; n <= max; n += step) {
                 Program p = problem.apply(n);
-                long avg = getAvgFromTrials(solver, p, withSemi, false);
+                long avg = getAvgFromTrials(solver, p, withSemi, withTimeout);
                 System.out.println("(" + solver + ") " + "Average time (n=" + n + "): " + avg + " ms");
                 jsonObjectSolver.put(n, avg);
             }
