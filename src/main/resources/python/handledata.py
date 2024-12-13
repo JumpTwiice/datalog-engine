@@ -7,7 +7,7 @@ BASE_PATH = Path(__file__).parent.parent.absolute()
 RESULT_PATH = BASE_PATH / "result"
 SOUFFLE_PATH = BASE_PATH / "souffle" / "result" 
 
-plt.rcParams["text.usetex"] = True
+# plt.rcParams["text.usetex"] = True
 
 def load_json_data(filename):
     """Load JSON data from file"""
@@ -16,7 +16,7 @@ def load_json_data(filename):
 
 def filter_and_sort_data(data):
     """Filter out entries with -1 values and sort by values"""
-    filtered_data = map(lambda x: np.nan if x[1] == -1 else (int(x[0]),x[1]), data.items())
+    filtered_data = map(lambda x: (int(x[0]), np.nan) if x[1] == -1 else (int(x[0]),x[1]), data.items())
     return dict(sorted(filtered_data, key=lambda x: x[0]))
 
 def get_solver_data(filename):
@@ -56,20 +56,26 @@ def semi_vs_naive(solver, filename):
     naive_data = get_all_solver_data(RESULT_PATH / "naive" / filename)[solver]
     
     data = {
-        r"\\textsc{" + solver + r"} with Semi-Naive": semi_data,
-        r"\\textsc{" + solver + r"} with Naive": naive_data
+        f"{solver} with Semi-Naive": semi_data,
+        f"{solver} with Naive": naive_data
     }
     return data
+
+def get_min(data):
+    return min(map(lambda x: int(x), list(data[next(iter(data))].keys())))
+
+def get_max(data):
+    return max(map(lambda x: int(x), list(data[next(iter(data))].keys())))
 
 def scc_trie_solver_semi_vs_naive():
     reach_data = semi_vs_naive("SCC Trie Solver", "default-reachable.json")
     clusters_data = semi_vs_naive("SCC Trie Solver", "default-clusters.json")
-    reach_min = np.min(reach_data.values())
-    reach_max = np.max(reach_data.values())
-    clusters_min = np.min(clusters_data.values())
-    clusters_max = np.max(clusters_data.values())
-    plot(reach_data, r"\\textsc{Sequence} - Naive vs Semi-naive", r"No. of \\texttt{edge} EDB Facts", np.arange(reach_min, reach_max, 10))
-    plot(reach_data, r"\\textsc{Clusters} - Naive vs Semi-naive", r"No. of \\texttt{edge} EDB Facts", np.arange(clusters_min, clusters_max, 100))
+    reach_min = get_min(reach_data)
+    reach_max = get_max(reach_data)
+    clusters_min = get_min(clusters_data)
+    clusters_max = get_max(clusters_data)
+    plot(reach_data, "Sequence - Naive vs Semi-naive", "No. of Edge EDB Facts", np.arange(reach_min, reach_max + 1, 40))
+    plot(clusters_data, "Clusters - Naive vs Semi-naive", "No. of Edge EDB Facts", np.arange(clusters_min, clusters_max + 1, 500))
 
 def plot(data, title, x_label, x_ticks):
     colors = ["red", "blue", "green", "purple"]
@@ -87,7 +93,17 @@ def plot(data, title, x_label, x_ticks):
 
 def main():
     scc_trie_solver_semi_vs_naive()
-
+    naive_reachable_data = get_all_solver_data(RESULT_PATH / "naive" / "reachable.json")
+    semi_reachable_data = get_all_solver_data(RESULT_PATH / "semi-naive" / "reachable.json")
+    data = {
+        "Trie Solver with Semi-Naive": semi_reachable_data["Trie Solver"],
+        "Trie Solver with Naive": naive_reachable_data["Trie Solver"],
+        "Simple Solver with Semi-Naive": semi_reachable_data["Simple Solver"],
+        "Simple Solver with Naive": naive_reachable_data["Simple Solver"]
+    }
+    plot(data, "Sequence", "No. of edge EDB Facts", np.arange(30, 131, 10))
+    exit(0)
+    
     print("Soufflé cartesian: " + str(get_souffle_average("cartesian", 10)) + " ms")
     print("Soufflé reachable: " + str(get_souffle_average("reachable", 10)) + " ms")
     print("Soufflé reachable-flipped: " + str(get_souffle_average("reachable-flipped", 10)) + " ms")
@@ -95,10 +111,10 @@ def main():
     #semi_vs_naive("Simple Solver", "Trie Solver")
     
     scc_reachable_data = get_all_solver_data(RESULT_PATH / "semi-naive" / "scc-reachable.json")
-    plot(scc_reachable_data, r"\\textsc{SCC-Reachable} - Semi-Naive Evaluation", r"Depth $i$", np.arange(1, 17, 1))
+    plot(scc_reachable_data, "SCC-Reachable - Semi-Naive Evaluation", "Depth", np.arange(1, 17, 1))
 
-    semi_reachable_data = get_all_solver_data(RESULT_PATH / "semi-naive" / "hard-problem.json")
-    plot(semi_reachable_data, r"\\textsc{Sequence} - Semi-Naive Evaluation", r"No. of \\texttt{edge} EDB Facts", np.arange(30, 131, 10))
+    
+    
 
 if __name__ == "__main__":
     main()
