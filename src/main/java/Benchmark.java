@@ -36,6 +36,10 @@ public class Benchmark {
                 benchmarkProblem("reachable.json", solvers, ProgramGen::reachableProblem, 30, 130, 10, true, true);
                 benchmarkProblem("reachable.json", solvers, ProgramGen::reachableProblem, 30, 130, 10, false, true);
             }
+            case "reachable-simple-vs-trie" -> {
+                Solv[] solvers = new Solv[]{Solv.TRIE, Solv.SIMPLE};
+                benchmarkProblem("reachable-large-simple-vs-true.json", solvers, ProgramGen::reachableProblem, 50, 1000, 50, true, true);
+            }
             case "magic-sets" -> {
                 String[] programs = new String[]{
                         "reachable-magic", "reachable-magic2", "reachable-original"
@@ -94,6 +98,8 @@ public class Benchmark {
             for (int n = min; n <= max; n += step) {
                 Program p = problem.apply(n);
                 long avg = getAvgFromTrials(solver, p, withSemi, withTimeout);
+                if (avg == -1L)
+                    break;
                 System.out.println("(" + solver + ") " + "Average time (n=" + n + "): " + avg + " ms");
                 jsonObjectSolver.put(n, avg);
             }
