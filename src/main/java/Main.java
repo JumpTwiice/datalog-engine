@@ -62,8 +62,8 @@ public class Main {
     public static String testPath = System.getProperty("user.dir") + "/src/test/";
 
     public static void main(String[] args) throws Exception {
-//        Testing.runAllTests();
-//        System.exit(0);
+        Testing.runAllTests();
+        System.exit(0);
 
 
 //        runAllTests();
