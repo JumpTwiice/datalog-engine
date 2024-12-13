@@ -351,7 +351,6 @@ public class TrieMap implements Map<Long, SimpleTrie> {
                 constantArr[i] = soFar.get((int) (long) rule.varMap.get(t.value));
             }
         }
-//        TODO: Check that clone is correct for constants.
         return query(atomSolution, isConstant, constantArr, sameArr);
     }
 

@@ -195,12 +195,69 @@ public class Testing {
     }
 
     public static void runAllTests() throws Exception {
+        System.out.println("Testing trie solver");
+        TrieTester.runAllTests();
         System.out.println("Testing simple solver");
         SimpleSolverTester.runAllTests();
         System.out.println("Testing magic sets");
-        MagicSetsTester.runRandomTests(1000);
+        MagicSetsTester.runAllTests();
         System.out.println("Comparing output of solvers");
         Testing.runRandomTests(1000);
+    }
+
+    private static class TrieTester {
+        public static void runAllTests() {
+            testInsertAndRemove();
+            testQuery();
+            testMeld();
+        }
+
+        public static void testMeld() {
+            var testTrie = new SimpleTrie(3);
+            testTrie.add(new long[] {1,2,3});
+            testTrie.add(new long[] {1,3,4});
+            var testTrie2 = new SimpleTrie(3);
+            testTrie2.add(new long[]{1,3,6});
+            testTrie2.add(new long[]{4,1,9});
+            testTrie.meld(testTrie2);
+            assert(testTrie.children.get(1L).children.get(2L).leaves.contains(3L));
+            assert(testTrie.children.get(1L).children.get(3L).leaves.contains(4L));
+            assert(testTrie.children.get(1L).children.get(3L).leaves.contains(6L));
+            assert(testTrie.children.get(4L).children.get(1L).leaves.contains(9L));
+        }
+
+        public static void testQuery() {
+            var testTrie = new SimpleTrie(3);
+            testTrie.add(new long[] {1,2,3});
+            testTrie.add(new long[] {1,3,4});
+            var q = TrieMap.query(testTrie, new boolean[3], new long[3], null);
+            assert(q.children.get(1L).children.get(2L).leaves.contains(3L));
+            assert(q.children.get(1L).children.get(3L).leaves.contains(4L));
+            assert(q.children.size() == 1 && q.children.get(1L).children.size() == 2 && q.children.get(1L).children.get(2L).leaves.size() == 1 && q.children.get(1L).children.get(3L).leaves.size() == 1);
+            q = TrieMap.query(testTrie, new boolean[] {false, true, false}, new long[] {29,2,32}, null);
+            assert(q.children.get(1L).leaves.contains(3L));
+            assert(q.children.size() == 1 && q.children.get(1L).leaves.size() == 1);
+            testTrie.add(new long[] {1,4,1});
+            q = TrieMap.query(testTrie, new boolean[]{false,false,true}, new long[3], new int[][]{new int[] {2}, null, null});
+            assert(q.children.get(1L).leaves.contains(4L));
+            assert(q.children.size() == 1 && q.children.get(1L).leaves.size() == 1);
+        }
+
+        public static void testInsertAndRemove() {
+            var testTrie = new SimpleTrie(3);
+            testTrie.add(new long[] {1,2,3});
+            assert(testTrie.children.get(1L).children.get(2L).leaves.contains(3L));
+            assert(testTrie.children.size() == 1 && testTrie.children.get(1L).children.size() == 1 && testTrie.children.get(1L).children.get(2L).leaves.size() == 1);
+            testTrie.add(new long[] {1,3,4});
+            assert(testTrie.children.get(1L).children.get(2L).leaves.contains(3L));
+            assert(testTrie.children.get(1L).children.get(3L).leaves.contains(4L));
+            assert(testTrie.children.size() == 1 && testTrie.children.get(1L).children.size() == 2 && testTrie.children.get(1L).children.get(2L).leaves.size() == 1 && testTrie.children.get(1L).children.get(3L).leaves.size() == 1);
+            var removeTrie = new SimpleTrie(3);
+            removeTrie.add(new long[]{1, 3, 4});
+            testTrie.removeAll(removeTrie);
+            assert(testTrie.children.get(1L).children.get(2L).leaves.contains(3L));
+            assert(testTrie.children.size() == 1 && testTrie.children.get(1L).children.size() == 1 && testTrie.children.get(1L).children.get(2L).leaves.size() == 1);
+        }
     }
 
 
@@ -227,9 +284,6 @@ public class Testing {
 
         }
 
-        /**
-         * Run (primarily) 'unit' tests. To avoid diving too deep into the various constructions the parser and so on will be used to generate inputs
-         */
         public static void runAllTests() throws Exception {
             runRandomTests(1000);
         }
