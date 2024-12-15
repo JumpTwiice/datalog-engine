@@ -1,11 +1,11 @@
-To compile the project install maven and then run 
+To compile the project, install Maven and run 
 ```
-maven compile
+mvn compile
 ```
-We have not constructed a nice user interface so at the moment the program is hardcoded to run the tests. 
+We have not constructed a nice user interface, so the program is currently hardcoded to run the tests. 
 
-To run a Datalog add it to the src/test folder. Afterwards navigate src/main/java/Main.java. Delete line 8-9 and change the string in line 11 to the name of your program. 
+To run your own Datalog program, add it to `src/test`, navigate to `src/main/java/Main.java`, delete lines 8-9, and change the string on line 11 to the name of your program. 
 
-To change solver ourcomment the current solver and un-outcomment the solver you want (line 22-25).
+To change the solver, comment out the current solver and uncomment the solver you want (lines 22-25).
 
-To do naive evaluation outcomment line 26 and un-outcomment line 27.
+To run naive evaluation, uncomment line 26 and comment out line 27.
